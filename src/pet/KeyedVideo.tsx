@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
+import { applyBottomFeather } from "./bottomFeather";
 import { removeBackgroundPixels, sampleCornerColor } from "./backgroundKeyer";
 import { getBoochVideoCropRect } from "./videoCrop";
 
 const boochBackgroundThreshold = 18;
+const bottomFeatherRows = 56;
 
 interface KeyedVideoProps {
   src: string;
@@ -74,6 +76,12 @@ export function KeyedVideo({ src }: KeyedVideoProps) {
             crop.sourceHeight,
             keyColor,
             boochBackgroundThreshold,
+          );
+          applyBottomFeather(
+            imageData.data,
+            crop.sourceWidth,
+            crop.sourceHeight,
+            bottomFeatherRows,
           );
           context.putImageData(imageData, 0, 0);
         }
