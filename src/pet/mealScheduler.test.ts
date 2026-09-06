@@ -62,4 +62,35 @@ describe("evaluateMealReminder", () => {
     expect(result.event).toBeNull();
     expect(result.state).toBe(emptyState);
   });
+
+  it("uses customized meal times from settings", () => {
+    const result = evaluateMealReminder(
+      new Date("2026-09-06T11:45:00+08:00"),
+      emptyState,
+      {
+        meals: {
+          lunch: "11:45",
+          dinner: "19:15",
+        },
+      },
+    );
+
+    expect(result.event).toEqual({ type: "meal-reminder", meal: "lunch" });
+  });
+
+  it("does not trigger meal reminders during enabled quiet hours", () => {
+    const result = evaluateMealReminder(
+      new Date("2026-09-06T12:00:00+08:00"),
+      emptyState,
+      {
+        focusQuietHours: {
+          enabled: true,
+          start: "09:00",
+          end: "18:00",
+        },
+      },
+    );
+
+    expect(result.event).toBeNull();
+  });
 });

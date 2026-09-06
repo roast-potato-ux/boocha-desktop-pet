@@ -11,6 +11,8 @@ fn setup_tray_menu(app: &mut tauri::App) -> tauri::Result<()> {
         .text("show-work", "切到工作")
         .text("show-eat", "切到吃饭")
         .separator()
+        .text("open-settings", "设置…")
+        .separator()
         .text("pause-reminders", "暂停提醒")
         .text("resume-reminders", "恢复提醒")
         .separator()
@@ -28,6 +30,8 @@ fn setup_tray_menu(app: &mut tauri::App) -> tauri::Result<()> {
                 let _ = app.emit("pet-state-requested", "work");
             } else if event.id() == "show-eat" {
                 let _ = app.emit("pet-state-requested", "eat");
+            } else if event.id() == "open-settings" {
+                let _ = app.emit("settings-panel-requested", true);
             } else if event.id() == "pause-reminders" {
                 let _ = app.emit("reminders-paused-changed", true);
             } else if event.id() == "resume-reminders" {

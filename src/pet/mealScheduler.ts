@@ -22,6 +22,15 @@ interface MealReminderResult {
 
 interface MealReminderOptions {
   paused?: boolean;
+  meals?: {
+    lunch: string;
+    dinner: string;
+  };
+  focusQuietHours?: {
+    enabled: boolean;
+    start: string;
+    end: string;
+  };
 }
 
 const defaultMeals: MealSchedule[] = [
@@ -53,6 +62,55 @@ function shouldSuppress(
   );
 }
 
+function parseMealMinute(value: string, fallback: number): number {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value);
+  if (!match) {
+    return fallback;
+  }
+
+  return Number(match[1]) * 60 + Number(match[2]);
+}
+
+function isWithinQuietHours(
+  minuteOfDay: number,
+  quietHours: MealReminderOptions["focusQuietHours"],
+): boolean {
+  if (!quietHours?.enabled) {
+    return false;
+  }
+
+  const start = parseMealMinute(quietHours.start, -1);
+  const end = parseMealMinute(quietHours.end, -1);
+  if (start < 0 || end < 0 || start === end) {
+    return false;
+  }
+
+  if (start < end) {
+    return minuteOfDay >= start && minuteOfDay < end;
+  }
+
+  return minuteOfDay >= start || minuteOfDay < end;
+}
+
+function createMealSchedule(options: MealReminderOptions): MealSchedule[] {
+  return [
+    {
+      meal: "lunch",
+      minuteOfDay: parseMealMinute(
+        options.meals?.lunch ?? "",
+        defaultMeals[0].minuteOfDay,
+      ),
+    },
+    {
+      meal: "dinner",
+      minuteOfDay: parseMealMinute(
+        options.meals?.dinner ?? "",
+        defaultMeals[1].minuteOfDay,
+      ),
+    },
+  ];
+}
+
 export function evaluateMealReminder(
   now: Date,
   state: MealReminderState,
@@ -63,7 +121,11 @@ export function evaluateMealReminder(
   }
 
   const stamp = toLocalStamp(now);
-  const matchedMeal = defaultMeals.find(
+  if (isWithinQuietHours(stamp.minuteOfDay, options.focusQuietHours)) {
+    return { event: null, state };
+  }
+
+  const matchedMeal = createMealSchedule(options).find(
     (meal) => meal.minuteOfDay === stamp.minuteOfDay,
   );
 

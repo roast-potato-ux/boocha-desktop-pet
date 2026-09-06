@@ -58,6 +58,19 @@ describe("evaluateAmbientInteraction", () => {
     expect(result.state).toEqual({ lastTriggeredAt: 100_000 });
   });
 
+  it("uses a customized idle interaction interval from settings", () => {
+    const result = evaluateAmbientInteraction(
+      250_000,
+      idlePet,
+      { lastTriggeredAt: 100_000 },
+      0.05,
+      { idleInteractionMinutes: 3 },
+    );
+
+    expect(result.event).toBeNull();
+    expect(result.state).toEqual({ lastTriggeredAt: 100_000 });
+  });
+
   it("does not trigger when the random roll is above the chance", () => {
     const result = evaluateAmbientInteraction(
       100_000,

@@ -1,9 +1,20 @@
 import type { PetEvent, PetViewModel } from "./types";
+import type { PetBubbleSettings } from "./petSettings";
 
 const idleClickLines = ["我在", "摸鱼一下", "今天也要好好吃饭"];
 const workClickLines = ["盯着你工作", "别忘了保存", "认真五分钟也算认真"];
-const eatClickLines = ["香", "先吃两口", "饭饭时间"];
+const eatClickLines = ["饭饭时间", "香", "先吃两口"];
 const ambientIdleLines = ["偷偷冒个泡", "发呆中", "陪你趴一会儿"];
+
+const defaultBubbles: PetBubbleSettings = {
+  idleClick: idleClickLines,
+  workClick: workClickLines,
+  eatClick: eatClickLines,
+  ambientIdle: ambientIdleLines,
+  lunch: ["饭点到"],
+  dinner: ["晚饭时间"],
+  workStart: ["开始认真搬砖"],
+};
 
 function pickLine(lines: string[], seed: number): string {
   return lines[Math.abs(seed) % lines.length];
@@ -13,9 +24,14 @@ export function reducePetState(
   current: PetViewModel,
   event: PetEvent,
   now: number,
+  bubbles: PetBubbleSettings = defaultBubbles,
 ): PetViewModel {
   if (event.type === "start-work") {
-    return { state: "work", bubble: "开始认真搬砖", lastInteractionAt: now };
+    return {
+      state: "work",
+      bubble: pickLine(bubbles.workStart, now),
+      lastInteractionAt: now,
+    };
   }
 
   if (event.type === "stop-work" || event.type === "return-idle") {
@@ -25,7 +41,10 @@ export function reducePetState(
   if (event.type === "meal-reminder") {
     return {
       state: "eat",
-      bubble: event.meal === "lunch" ? "饭点到" : "晚饭时间",
+      bubble: pickLine(
+        event.meal === "lunch" ? bubbles.lunch : bubbles.dinner,
+        now,
+      ),
       lastInteractionAt: now,
     };
   }
@@ -36,17 +55,25 @@ export function reducePetState(
     }
 
     if (event.state === "work") {
-      return { state: "work", bubble: "开始认真搬砖", lastInteractionAt: now };
+      return {
+        state: "work",
+        bubble: pickLine(bubbles.workStart, now),
+        lastInteractionAt: now,
+      };
     }
 
-    return { state: "eat", bubble: "饭饭时间", lastInteractionAt: now };
+    return {
+      state: "eat",
+      bubble: pickLine(bubbles.eatClick, now),
+      lastInteractionAt: now,
+    };
   }
 
   if (event.type === "pet-click") {
     const linesByState = {
-      idle: idleClickLines,
-      work: workClickLines,
-      eat: eatClickLines,
+      idle: bubbles.idleClick,
+      work: bubbles.workClick,
+      eat: bubbles.eatClick,
     } satisfies Record<PetViewModel["state"], string[]>;
 
     return {
@@ -63,7 +90,7 @@ export function reducePetState(
 
     return {
       ...current,
-      bubble: pickLine(ambientIdleLines, event.seed),
+      bubble: pickLine(bubbles.ambientIdle, event.seed),
       lastInteractionAt: now,
     };
   }
@@ -81,11 +108,19 @@ export function reducePetState(
 
   if (event.type === "cycle-state") {
     if (current.state === "idle") {
-      return { state: "work", bubble: "开始认真搬砖", lastInteractionAt: now };
+      return {
+        state: "work",
+        bubble: pickLine(bubbles.workStart, now),
+        lastInteractionAt: now,
+      };
     }
 
     if (current.state === "work") {
-      return { state: "eat", bubble: "饭点到", lastInteractionAt: now };
+      return {
+        state: "eat",
+        bubble: pickLine(bubbles.lunch, now),
+        lastInteractionAt: now,
+      };
     }
 
     return { state: "idle", bubble: null, lastInteractionAt: now };

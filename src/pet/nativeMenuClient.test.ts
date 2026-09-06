@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createPetStateRequestHandler,
   createReminderPauseHandler,
+  createSettingsPanelRequestHandler,
 } from "./nativeMenuClient";
 
 describe("createReminderPauseHandler", () => {
@@ -61,5 +62,18 @@ describe("createPetStateRequestHandler", () => {
     handlePetStateRequest({ payload: 1 });
 
     expect(states).toEqual([]);
+  });
+});
+
+describe("createSettingsPanelRequestHandler", () => {
+  it("opens the settings panel when the native menu requests it", () => {
+    let requests = 0;
+    const handleSettingsRequest = createSettingsPanelRequestHandler(() => {
+      requests += 1;
+    });
+
+    handleSettingsRequest();
+
+    expect(requests).toBe(1);
   });
 });

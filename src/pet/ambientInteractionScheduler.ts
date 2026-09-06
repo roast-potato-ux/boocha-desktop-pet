@@ -9,6 +9,10 @@ interface AmbientInteractionResult {
   state: AmbientInteractionState;
 }
 
+interface AmbientInteractionOptions {
+  idleInteractionMinutes?: number;
+}
+
 const quietWindowMs = 90 * 1000;
 const triggerChance = 0.18;
 
@@ -23,14 +27,20 @@ export function evaluateAmbientInteraction(
   pet: PetViewModel,
   state: AmbientInteractionState,
   randomRoll: number,
+  options: AmbientInteractionOptions = {},
 ): AmbientInteractionResult {
   if (pet.state !== "idle" || pet.bubble) {
     return { event: null, state };
   }
 
+  const quietMs =
+    typeof options.idleInteractionMinutes === "number"
+      ? options.idleInteractionMinutes * 60 * 1000
+      : quietWindowMs;
+
   if (
     state.lastTriggeredAt !== null &&
-    now - state.lastTriggeredAt < quietWindowMs
+    now - state.lastTriggeredAt < quietMs
   ) {
     return { event: null, state };
   }

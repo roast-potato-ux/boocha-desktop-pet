@@ -1,0 +1,124 @@
+import { describe, expect, it } from "vitest";
+import {
+  createDefaultPetSettings,
+  loadPetSettings,
+  normalizePetSettings,
+  savePetSettings,
+} from "./petSettings";
+
+class MemoryStorage {
+  private values = new Map<string, string>();
+
+  getItem(key: string) {
+    return this.values.get(key) ?? null;
+  }
+
+  setItem(key: string, value: string) {
+    this.values.set(key, value);
+  }
+}
+
+describe("petSettings", () => {
+  it("provides defaults for the first local settings panel", () => {
+    expect(createDefaultPetSettings()).toMatchObject({
+      scale: 1,
+      durations: {
+        eatSeconds: 30,
+        workMinutes: 10,
+        idleInteractionMinutes: 3,
+      },
+      meals: {
+        lunch: "12:00",
+        dinner: "18:30",
+      },
+      remindersPaused: false,
+      focusQuietHours: {
+        enabled: false,
+        start: "22:30",
+        end: "09:00",
+      },
+    });
+  });
+
+  it("loads saved settings while filling missing fields from defaults", () => {
+    const storage = new MemoryStorage();
+    storage.setItem(
+      "booch.pet.settings.v1",
+      JSON.stringify({
+        scale: 1.2,
+        meals: { lunch: "11:45" },
+        bubbles: { lunch: ["开饭开饭"] },
+      }),
+    );
+
+    const settings = loadPetSettings(storage);
+
+    expect(settings.scale).toBe(1.2);
+    expect(settings.meals).toEqual({ lunch: "11:45", dinner: "18:30" });
+    expect(settings.bubbles.lunch).toEqual(["开饭开饭"]);
+    expect(settings.bubbles.workClick.length).toBeGreaterThan(0);
+  });
+
+  it("falls back to defaults when saved settings are not readable", () => {
+    const storage = new MemoryStorage();
+    storage.setItem("booch.pet.settings.v1", "{");
+
+    expect(loadPetSettings(storage)).toEqual(createDefaultPetSettings());
+  });
+
+  it("keeps unsafe values within usable local prototype ranges", () => {
+    const settings = normalizePetSettings({
+      scale: 9,
+      durations: {
+        eatSeconds: 3,
+        workMinutes: 999,
+        idleInteractionMinutes: 0,
+      },
+      meals: {
+        lunch: "99:99",
+        dinner: "19:15",
+      },
+      bubbles: {
+        idleClick: ["  "],
+        lunch: ["开饭"],
+      },
+      remindersPaused: true,
+      focusQuietHours: {
+        enabled: true,
+        start: "25:00",
+        end: "08:30",
+      },
+    });
+
+    expect(settings.scale).toBe(1.4);
+    expect(settings.durations).toEqual({
+      eatSeconds: 10,
+      workMinutes: 60,
+      idleInteractionMinutes: 1,
+    });
+    expect(settings.meals).toEqual({ lunch: "12:00", dinner: "19:15" });
+    expect(settings.bubbles.idleClick).toEqual(
+      createDefaultPetSettings().bubbles.idleClick,
+    );
+    expect(settings.bubbles.lunch).toEqual(["开饭"]);
+    expect(settings.remindersPaused).toBe(true);
+    expect(settings.focusQuietHours).toEqual({
+      enabled: true,
+      start: "22:30",
+      end: "08:30",
+    });
+  });
+
+  it("saves normalized settings to local storage", () => {
+    const storage = new MemoryStorage();
+
+    savePetSettings(storage, {
+      ...createDefaultPetSettings(),
+      scale: 0.2,
+    });
+
+    expect(JSON.parse(storage.getItem("booch.pet.settings.v1") ?? "{}").scale).toBe(
+      0.6,
+    );
+  });
+});

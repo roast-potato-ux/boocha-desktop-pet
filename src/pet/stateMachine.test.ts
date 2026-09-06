@@ -55,6 +55,25 @@ describe("reducePetState", () => {
     });
   });
 
+  it("uses custom bubble lines from settings", () => {
+    const result = reducePetState(
+      idle,
+      { type: "pet-click" },
+      0,
+      {
+        idleClick: ["自定义待机"],
+        workClick: ["自定义工作"],
+        eatClick: ["自定义吃饭"],
+        ambientIdle: ["自定义冒泡"],
+        lunch: ["自定义午饭"],
+        dinner: ["自定义晚饭"],
+        workStart: ["自定义开工"],
+      },
+    );
+
+    expect(result.bubble).toBe("自定义待机");
+  });
+
   it("clears a bubble without changing the current pet state", () => {
     const work: PetViewModel = {
       state: "work",

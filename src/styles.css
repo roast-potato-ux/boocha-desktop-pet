@@ -122,3 +122,216 @@ body,
     transform: scaleY(0.96) translateY(3px);
   }
 }
+
+/* ---- Settings panel ---- */
+
+.pet-stage--settings {
+  overflow-y: auto;
+  background: #f6efe3;
+}
+
+.pet-stage--settings .pet-anchor {
+  display: none;
+}
+
+.settings-panel {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 100%;
+  padding: 18px 18px 24px;
+  color: #25211d;
+  background: #f6efe3;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  user-select: none;
+}
+
+.settings-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-panel__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b0834f;
+}
+
+.settings-panel__header h1 {
+  margin: 3px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.settings-panel__ghost-button {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #8a7a64;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.settings-panel__ghost-button:hover {
+  background: rgb(0 0 0 / 5%);
+  color: #25211d;
+}
+
+.settings-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 14px 16px;
+  border: 1px solid #eee1cd;
+  border-radius: 16px;
+  background: #fffdf8;
+  box-shadow: 0 2px 10px rgb(72 51 20 / 5%);
+}
+
+.settings-panel__section h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #5c4b33;
+}
+
+.settings-panel__section > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b5d4b;
+}
+
+.settings-panel__section input[type="number"],
+.settings-panel__section input[type="time"],
+.settings-panel__section textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e3d6bf;
+  border-radius: 10px;
+  background: #fffefb;
+  color: #25211d;
+  font-size: 13px;
+  font-family: inherit;
+  accent-color: #e0a04a;
+}
+
+.settings-panel__section input[type="number"]:focus,
+.settings-panel__section input[type="time"]:focus,
+.settings-panel__section textarea:focus {
+  outline: none;
+  border-color: #e0a04a;
+  box-shadow: 0 0 0 3px rgb(224 160 74 / 18%);
+}
+
+.settings-panel__section textarea {
+  min-height: 52px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.settings-panel__section input[type="range"] {
+  width: 100%;
+  accent-color: #e0a04a;
+}
+
+.settings-panel__section input[type="checkbox"] {
+  accent-color: #e0a04a;
+}
+
+.settings-panel__check {
+  display: flex;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  font-size: 13px;
+  color: #6b5d4b;
+  cursor: pointer;
+}
+
+.settings-panel__segmented {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #efe5d2;
+}
+
+.settings-panel__segmented button {
+  flex: 1;
+  padding: 7px 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #7a6a53;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.settings-panel__segmented button:hover {
+  color: #25211d;
+}
+
+.settings-panel__segmented button[data-active="true"] {
+  background: #fffdf8;
+  color: #25211d;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgb(72 51 20 / 12%);
+}
+
+.settings-panel__inline {
+  display: flex;
+  gap: 10px;
+}
+
+.settings-panel__inline > label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b5d4b;
+}
+
+.settings-panel__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.settings-panel__footer button {
+  padding: 9px 16px;
+  border: 1px solid #e3d6bf;
+  border-radius: 12px;
+  background: #fffdf8;
+  color: #6b5d4b;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.settings-panel__footer button:hover {
+  border-color: #d8c7a8;
+  color: #25211d;
+}
+
+.settings-panel__primary-button {
+  border-color: transparent !important;
+  background: #e0a04a !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.settings-panel__primary-button:hover {
+  background: #d3933a !important;
+  color: #fff !important;
+}

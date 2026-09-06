@@ -7,6 +7,7 @@ interface ReminderPauseEvent {
 
 type ReminderPauseListener = (paused: boolean) => void;
 type PetStateRequestListener = (state: PetState) => void;
+type SettingsPanelRequestListener = () => void;
 
 export function createReminderPauseHandler(
   onPauseChange: ReminderPauseListener,
@@ -52,6 +53,27 @@ export async function listenForPetStateRequests(
     return await listen(
       "pet-state-requested",
       createPetStateRequestHandler(onPetStateRequest),
+    );
+  } catch {
+    return () => undefined;
+  }
+}
+
+export function createSettingsPanelRequestHandler(
+  onSettingsPanelRequest: SettingsPanelRequestListener,
+) {
+  return () => {
+    onSettingsPanelRequest();
+  };
+}
+
+export async function listenForSettingsPanelRequests(
+  onSettingsPanelRequest: SettingsPanelRequestListener,
+): Promise<() => void> {
+  try {
+    return await listen(
+      "settings-panel-requested",
+      createSettingsPanelRequestHandler(onSettingsPanelRequest),
     );
   } catch {
     return () => undefined;
