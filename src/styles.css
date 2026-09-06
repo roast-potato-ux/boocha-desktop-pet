@@ -1,0 +1,116 @@
+:root {
+  color: #25211d;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.pet-stage {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background: transparent;
+  user-select: none;
+}
+
+.pet-anchor {
+  position: absolute;
+  width: 188px;
+  height: 220px;
+  touch-action: none;
+}
+
+.pet-shell {
+  position: relative;
+  width: 188px;
+  height: 188px;
+  border: 0;
+  padding: 0;
+  border-radius: 22px;
+  background: transparent;
+  box-shadow: none;
+  color: #25211d;
+  cursor: grab;
+  animation: idle-breathe 3.2s ease-in-out infinite;
+  overflow: hidden;
+}
+
+.pet-shell:active {
+  cursor: grabbing;
+}
+
+.pet-shell--work {
+  animation: work-focus 2.8s ease-in-out infinite;
+}
+
+.pet-shell--eat {
+  animation: eat-nom 0.8s ease-in-out infinite;
+}
+
+.pet-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  mix-blend-mode: normal;
+}
+
+.pet-bubble {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+  max-width: 180px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 86%);
+  box-shadow: 0 8px 22px rgb(43 33 22 / 14%);
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: nowrap;
+  transform: translate(-50%, -80%);
+}
+
+@keyframes idle-breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes work-focus {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+
+  50% {
+    transform: translateY(-3px) rotate(1deg);
+  }
+}
+
+@keyframes eat-nom {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  50% {
+    transform: scaleY(0.96) translateY(3px);
+  }
+}
