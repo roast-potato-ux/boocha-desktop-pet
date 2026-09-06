@@ -3,6 +3,7 @@ import type { PetEvent, PetViewModel } from "./types";
 const idleClickLines = ["我在", "摸鱼一下", "今天也要好好吃饭"];
 const workClickLines = ["盯着你工作", "别忘了保存", "认真五分钟也算认真"];
 const eatClickLines = ["香", "先吃两口", "饭饭时间"];
+const ambientIdleLines = ["偷偷冒个泡", "发呆中", "陪你趴一会儿"];
 
 function pickLine(lines: string[], seed: number): string {
   return lines[Math.abs(seed) % lines.length];
@@ -40,6 +41,29 @@ export function reducePetState(
       ...current,
       bubble: pickLine(linesByState[current.state], now),
       lastInteractionAt: now,
+    };
+  }
+
+  if (event.type === "ambient-interaction") {
+    if (current.state !== "idle") {
+      return current;
+    }
+
+    return {
+      ...current,
+      bubble: pickLine(ambientIdleLines, event.seed),
+      lastInteractionAt: now,
+    };
+  }
+
+  if (event.type === "clear-bubble") {
+    if (current.lastInteractionAt !== event.interactionAt) {
+      return current;
+    }
+
+    return {
+      ...current,
+      bubble: null,
     };
   }
 

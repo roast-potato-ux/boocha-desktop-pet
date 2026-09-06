@@ -4,10 +4,12 @@ export type MealKind = "lunch" | "dinner";
 
 export type PetEvent =
   | { type: "pet-click" }
+  | { type: "ambient-interaction"; seed: number }
   | { type: "start-work" }
   | { type: "stop-work" }
   | { type: "meal-reminder"; meal: MealKind }
   | { type: "cycle-state" }
+  | { type: "clear-bubble"; interactionAt: number }
   | { type: "return-idle" };
 
 export interface PetViewModel {

@@ -2,6 +2,10 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import { Bubble } from "./pet/Bubble";
 import { PetSprite } from "./pet/PetSprite";
 import {
+  createInitialAmbientInteractionState,
+  evaluateAmbientInteraction,
+} from "./pet/ambientInteractionScheduler";
+import {
   createInitialMealReminderState,
   evaluateMealReminder,
 } from "./pet/mealScheduler";
@@ -41,6 +45,7 @@ export default function App() {
     return savedPosition ?? getDefaultPetPosition(getViewport());
   });
   const mealReminderState = useRef(createInitialMealReminderState());
+  const ambientInteractionState = useRef(createInitialAmbientInteractionState());
   const dragState = useRef<{
     startPointer: { x: number; y: number };
     startPosition: { left: number; top: number };
@@ -65,6 +70,43 @@ export default function App() {
       window.clearInterval(timer);
     };
   }, [remindersPaused]);
+
+  useEffect(() => {
+    const tick = () => {
+      const result = evaluateAmbientInteraction(
+        Date.now(),
+        pet,
+        ambientInteractionState.current,
+        Math.random(),
+      );
+      ambientInteractionState.current = result.state;
+
+      if (result.event) {
+        dispatch(result.event);
+      }
+    };
+
+    const timer = window.setInterval(tick, 20 * 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [pet]);
+
+  useEffect(() => {
+    if (!pet.bubble) {
+      return;
+    }
+
+    const interactionAt = pet.lastInteractionAt;
+    const timer = window.setTimeout(() => {
+      dispatch({ type: "clear-bubble", interactionAt });
+    }, 8 * 1000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [pet.bubble, pet.lastInteractionAt]);
 
   useEffect(() => {
     let unlisten: (() => void) | null = null;

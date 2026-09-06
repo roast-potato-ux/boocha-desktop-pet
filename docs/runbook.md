@@ -13,6 +13,7 @@ Open `http://127.0.0.1:1420/`.
 - The pet uses the user's local videos for idle, work, and eat states.
 - The video background is removed in the app: the outside background is transparent, while Booch's own light body fill is preserved.
 - Click the pet to show a short bubble.
+- While idle, the pet occasionally shows a short ambient bubble on its own without switching out of idle mode.
 - Double-click the pet to cycle through idle, work, eat, then back to idle.
 - At 12:00 and 18:30 local time, the preview switches the pet to eat.
 - In the macOS desktop app, use the status bar menu to pause reminders, resume reminders, or quit Booch.

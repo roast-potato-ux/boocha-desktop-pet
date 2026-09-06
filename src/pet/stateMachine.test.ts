@@ -31,6 +31,56 @@ describe("reducePetState", () => {
     expect(["idle", "work", "eat"]).toContain(result.state);
   });
 
+  it("shows ambient idle feedback without leaving idle mode", () => {
+    const result = reducePetState(
+      idle,
+      { type: "ambient-interaction", seed: 0 },
+      3500,
+    );
+
+    expect(result).toMatchObject({
+      state: "idle",
+      bubble: "偷偷冒个泡",
+      lastInteractionAt: 3500,
+    });
+  });
+
+  it("clears a bubble without changing the current pet state", () => {
+    const work: PetViewModel = {
+      state: "work",
+      bubble: "别忘了保存",
+      lastInteractionAt: 4000,
+    };
+
+    const result = reducePetState(
+      work,
+      { type: "clear-bubble", interactionAt: 4000 },
+      5000,
+    );
+
+    expect(result).toEqual({
+      state: "work",
+      bubble: null,
+      lastInteractionAt: 4000,
+    });
+  });
+
+  it("does not clear a newer bubble from an older timer", () => {
+    const newerInteraction: PetViewModel = {
+      state: "idle",
+      bubble: "我在",
+      lastInteractionAt: 7000,
+    };
+
+    const result = reducePetState(
+      newerInteraction,
+      { type: "clear-bubble", interactionAt: 6000 },
+      8000,
+    );
+
+    expect(result).toBe(newerInteraction);
+  });
+
   it("cycles through the three visible states for manual preview", () => {
     const work = reducePetState(idle, { type: "cycle-state" }, 4000);
     const eat = reducePetState(work, { type: "cycle-state" }, 5000);
