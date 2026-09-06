@@ -1,6 +1,7 @@
 import boochEat from "../assets/booch-eat.mov";
 import boochIdle from "../assets/booch-idle.mov";
 import boochWork from "../assets/booch-work.mov";
+import { KeyedVideo } from "./KeyedVideo";
 import type { PetViewModel } from "./types";
 import { startPetDrag } from "./windowControls";
 
@@ -30,15 +31,7 @@ export function PetSprite({ pet, onClick, onToggleWork }: PetSpriteProps) {
       }}
       aria-label={`渣熊${pet.state}`}
     >
-      <video
-        key={pet.state}
-        className="pet-video"
-        src={videoSrc}
-        autoPlay
-        loop
-        muted
-        playsInline
-      />
+      <KeyedVideo src={videoSrc} />
     </button>
   );
 }
