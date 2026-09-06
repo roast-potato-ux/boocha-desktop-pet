@@ -20,6 +20,10 @@ interface MealReminderResult {
   state: MealReminderState;
 }
 
+interface MealReminderOptions {
+  paused?: boolean;
+}
+
 const defaultMeals: MealSchedule[] = [
   { meal: "lunch", minuteOfDay: 12 * 60 },
   { meal: "dinner", minuteOfDay: 18 * 60 + 30 },
@@ -52,7 +56,12 @@ function shouldSuppress(
 export function evaluateMealReminder(
   now: Date,
   state: MealReminderState,
+  options: MealReminderOptions = {},
 ): MealReminderResult {
+  if (options.paused) {
+    return { event: null, state };
+  }
+
   const stamp = toLocalStamp(now);
   const matchedMeal = defaultMeals.find(
     (meal) => meal.minuteOfDay === stamp.minuteOfDay,

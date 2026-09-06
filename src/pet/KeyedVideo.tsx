@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { removeBackgroundPixels, sampleCornerColor } from "./backgroundKeyer";
 
+const boochBackgroundThreshold = 18;
+
 interface KeyedVideoProps {
   src: string;
 }
@@ -41,7 +43,13 @@ export function KeyedVideo({ src }: KeyedVideoProps) {
 
           const imageData = context.getImageData(0, 0, width, height);
           const keyColor = sampleCornerColor(imageData.data, width, height);
-          removeBackgroundPixels(imageData.data, width, height, keyColor, 42);
+          removeBackgroundPixels(
+            imageData.data,
+            width,
+            height,
+            keyColor,
+            boochBackgroundThreshold,
+          );
           context.putImageData(imageData, 0, 0);
         }
       }

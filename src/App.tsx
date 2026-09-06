@@ -5,6 +5,7 @@ import {
   createInitialMealReminderState,
   evaluateMealReminder,
 } from "./pet/mealScheduler";
+import { listenForReminderPauseChanges } from "./pet/nativeMenuClient";
 import {
   applyDrag,
   getDefaultPetPosition,
@@ -34,6 +35,7 @@ function getViewport() {
 
 export default function App() {
   const [pet, dispatch] = useReducer(reducer, initialPet);
+  const [remindersPaused, setRemindersPaused] = useState(false);
   const [position, setPosition] = useState(() => {
     const savedPosition = loadPetPosition(window.localStorage);
     return savedPosition ?? getDefaultPetPosition(getViewport());
@@ -46,7 +48,9 @@ export default function App() {
 
   useEffect(() => {
     const tick = () => {
-      const result = evaluateMealReminder(new Date(), mealReminderState.current);
+      const result = evaluateMealReminder(new Date(), mealReminderState.current, {
+        paused: remindersPaused,
+      });
       mealReminderState.current = result.state;
 
       if (result.event) {
@@ -59,6 +63,27 @@ export default function App() {
 
     return () => {
       window.clearInterval(timer);
+    };
+  }, [remindersPaused]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | null = null;
+    let cancelled = false;
+
+    void listenForReminderPauseChanges((paused) => {
+      setRemindersPaused(paused);
+    }).then((nextUnlisten) => {
+      if (cancelled) {
+        nextUnlisten();
+        return;
+      }
+
+      unlisten = nextUnlisten;
+    });
+
+    return () => {
+      cancelled = true;
+      unlisten?.();
     };
   }, []);
 

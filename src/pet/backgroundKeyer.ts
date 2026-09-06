@@ -24,6 +24,19 @@ function colorDistance(a: RgbColor, b: RgbColor): number {
   return Math.sqrt(red * red + green * green + blue * blue);
 }
 
+function luminance(color: RgbColor): number {
+  return color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
+}
+
+function isBrightCharacterFill(color: RgbColor, keyColor: RgbColor): boolean {
+  return (
+    color.r >= keyColor.r &&
+    color.g >= keyColor.g &&
+    color.b >= keyColor.b &&
+    luminance(color) - luminance(keyColor) >= 8
+  );
+}
+
 export function sampleCornerColor(
   pixels: Uint8ClampedArray,
   width: number,
@@ -53,13 +66,17 @@ export function removeBackgroundPixels(
   const visited = new Uint8Array(width * height);
   const stack: Array<[number, number]> = [];
   const softThreshold = threshold * 2.5;
+  const seedSize = Math.max(2, Math.ceil(Math.min(width, height) * 0.08));
 
-  for (let x = 0; x < width; x += 1) {
-    stack.push([x, 0], [x, height - 1]);
-  }
-
-  for (let y = 1; y < height - 1; y += 1) {
-    stack.push([0, y], [width - 1, y]);
+  for (let y = 0; y < seedSize; y += 1) {
+    for (let x = 0; x < seedSize; x += 1) {
+      stack.push(
+        [x, y],
+        [width - 1 - x, y],
+        [x, height - 1 - y],
+        [width - 1 - x, height - 1 - y],
+      );
+    }
   }
 
   while (stack.length > 0) {
@@ -81,7 +98,13 @@ export function removeBackgroundPixels(
 
     visited[pixelIndex] = 1;
     const offset = pixelIndex * 4;
-    const distance = colorDistance(readColor(pixels, offset), keyColor);
+    const color = readColor(pixels, offset);
+
+    if (isBrightCharacterFill(color, keyColor)) {
+      continue;
+    }
+
+    const distance = colorDistance(color, keyColor);
 
     if (distance > softThreshold) {
       continue;

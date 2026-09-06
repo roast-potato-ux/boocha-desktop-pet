@@ -51,4 +51,15 @@ describe("evaluateMealReminder", () => {
 
     expect(nextDay.event).toEqual({ type: "meal-reminder", meal: "lunch" });
   });
+
+  it("does not trigger meal reminders while reminders are paused", () => {
+    const result = evaluateMealReminder(
+      new Date("2026-09-06T12:00:00+08:00"),
+      emptyState,
+      { paused: true },
+    );
+
+    expect(result.event).toBeNull();
+    expect(result.state).toBe(emptyState);
+  });
 });

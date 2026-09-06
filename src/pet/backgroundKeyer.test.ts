@@ -64,4 +64,44 @@ describe("backgroundKeyer", () => {
     expect(centerAlpha).toBe(255);
     expect(cornerAlpha).toBe(0);
   });
+
+  it("keeps light character fill when the character reaches the frame edge", () => {
+    const background = [242, 241, 237, 255];
+    const outline = [20, 20, 20, 255];
+    const fill = [255, 255, 255, 255];
+    const pixels = new Uint8ClampedArray([
+      ...background, ...background, ...background, ...background, ...background,
+      ...background, ...outline, ...outline, ...outline, ...outline,
+      ...background, ...outline, ...fill, ...fill, ...fill,
+      ...background, ...outline, ...outline, ...outline, ...outline,
+      ...background, ...background, ...background, ...background, ...background,
+    ]);
+
+    removeBackgroundPixels(pixels, 5, 5, { r: 242, g: 241, b: 237 }, 18);
+
+    const edgeFillAlpha = pixels[(2 * 5 + 4) * 4 + 3];
+
+    expect(edgeFillAlpha).toBe(255);
+  });
+
+  it("does not let bright character fill become a path into the character body", () => {
+    const background = [242, 241, 237, 255];
+    const outline = [20, 20, 20, 255];
+    const fill = [255, 255, 255, 255];
+    const pixels = new Uint8ClampedArray([
+      ...background, ...background, ...background, ...background, ...background,
+      ...background, ...outline, ...fill, ...outline, ...background,
+      ...background, ...outline, ...fill, ...outline, ...background,
+      ...background, ...outline, ...fill, ...outline, ...background,
+      ...background, ...background, ...background, ...background, ...background,
+    ]);
+
+    removeBackgroundPixels(pixels, 5, 5, { r: 242, g: 241, b: 237 }, 18);
+
+    const topGapFillAlpha = pixels[(1 * 5 + 2) * 4 + 3];
+    const innerFillAlpha = pixels[(2 * 5 + 2) * 4 + 3];
+
+    expect(topGapFillAlpha).toBe(255);
+    expect(innerFillAlpha).toBe(255);
+  });
 });
