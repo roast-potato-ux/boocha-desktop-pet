@@ -1,6 +1,6 @@
 # Booch Desktop Pet 交接文档
 
-更新时间：2026-09-06  
+更新时间：2026-09-06（设置面板阶段收尾）
 项目路径：`/Users/bytedance/Documents/AI Explore/booch-desktop-pet`
 
 ## 给接手 agent 的第一句话
@@ -13,6 +13,7 @@
 - 当前原型直接使用用户上传的 Booch 视频，目标是“完全按照视频里的样子”在本机私用；不要把这些 IP 素材包装成可公开分发、售卖或发布的产品。
 - 第一版只保留三个状态：`待机`、`工作`、`吃饭`。之前提到过的“喝水”状态已经被用户要求删除，不要恢复。
 - 用户偏好中文、直接、具体。不要把“还没验证”的东西说成完成。
+- 用户明确不要桌宠背后出现任何背景板/毛玻璃：桌宠窗口必须纯透明；毛玻璃只在设置面板打开期间存在。
 
 ## 用户当前想要的产品
 
@@ -22,13 +23,15 @@
 - 桌宠窗口透明、无边框、置顶。
 - 用户能拖动它并保存位置。
 - 用户能点击/双击/菜单操作，得到气泡或切换状态。
+- 右键点击桌宠可以直接打开设置面板（已实现）。
 - 饭点会提醒吃饭，并切到吃饭形态。
-- 用户现在进一步确认要一个可点击进入的设置面板，用来调行为：
-  - 桌宠大小：小 / 中 / 大，或滑杆缩放。
+- 设置面板（已实现）：
+  - 桌宠大小：小 / 中 / 大分段按钮。
   - 状态停留时间：吃饭显示秒数、工作显示分钟数、待机随机冒泡间隔。
-  - 气泡文案：饭点、工作、待机等说什么。
+  - 气泡文案：全部七项（idleClick / workClick / eatClick / workStart / ambientIdle / lunch / dinner）。
   - 饭点时间：午饭、晚饭几点触发。
   - 暂停提醒 / 专注时段不打扰。
+  - macOS 原生毛玻璃风格（用户点名要“苹果最新系统的那种毛玻璃”）。
 
 未来第二阶段：
 
@@ -39,15 +42,18 @@
 
 ## 当前稳定基线
 
-最后一个已提交的稳定提交：
+最后一个已提交的稳定提交（工作区干净）：
 
 ```text
-8ac3fba fix: soften booch video bottom edge
+f254474 fix: transparent pet window, bubble clipping and right-click settings
 ```
 
 提交历史：
 
 ```text
+f254474 fix: transparent pet window, bubble clipping and right-click settings
+8a6e9de feat: add booch settings panel
+da9815d docs: add booch desktop pet handoff
 8ac3fba fix: soften booch video bottom edge
 02ec7a4 feat: add pet state menu controls
 bc5852e feat: add ambient idle interactions
@@ -68,192 +74,96 @@ bc5852e feat: add ambient idle interactions
 - 桌宠可拖动，位置保存到 `localStorage`。
 - 本地饭点提醒：默认 `12:00` 午饭、`18:30` 晚饭。
 - 待机状态会随机自己冒泡。
-- macOS 状态栏菜单可切换 `待机 / 工作 / 吃饭`，也可以暂停/恢复提醒、退出应用。
+- macOS 状态栏菜单可切换 `待机 / 工作 / 吃饭`、暂停/恢复提醒、打开设置、退出应用。
+- 完整设置面板（`src/pet/SettingsPanel.tsx`）：
+  - 大小、时长、饭点、不打扰、全部气泡文案、恢复/保存按钮。
+  - macOS 毛玻璃视觉（rgba 半透明 + backdrop-filter blur/saturate，苹果蓝 #007aff 强调色）。
+  - header 有 `data-tauri-drag-region`，面板可拖动。
+  - draft 保留原始输入、保存时才 `normalizePetSettings`（textarea 清空不会立刻回填默认值）。
+- 设置模型 `src/pet/petSettings.ts`：
+  - 缩放 `1`、吃饭 `30` 秒、工作 `10` 分钟、待机冒泡 `3` 分钟、午饭 `12:00`、晚饭 `18:30`、默认不暂停、专注时段默认关闭 `22:30-09:00`。
+  - 保存键 `booch.pet.settings.v1`，目前用 `localStorage`，还没迁 Tauri store。
+- 桌宠右键直接打开设置面板。
+- 窗口尺寸切换：桌宠模式 `220×220×scale`，设置模式 `460×680` 并居中；关闭设置后恢复原位置。
+- 毛玻璃生命周期：只在设置面板打开期间存在，桌宠窗口保持纯透明。
 
-## 当前工作区状态：设置面板 WIP，未提交
+## 本阶段踩过的坑（重要，别再踩）
 
-当前有一批设置面板相关改动还在工作区里，测试和前端构建通过，但功能还不能算完成。
+这些都是实际调试中确认过的根因，接手前必读：
 
-当前 `git status --short --untracked-files=all`：
+1. **`tauri.conf.json` 是编译期产物**。`generate_context!` 宏把它打进 Rust 二进制，改 `windowEffects` / `transparent` / 窗口尺寸后，前端热更新不会生效，必须 Ctrl+C 彻底结束 `npm run tauri:dev` 再重新跑（会重新编译 Rust）。用户曾经连续两轮反馈“背景还在”，就是因为跑的旧二进制。
+
+2. **Tauri 2.11.5 的 `clearEffects()` 在 macOS 上是 no-op**。`set_effects(null)` 走的 `set_window_effects(None)` 分支只有 `#[cfg(windows)]` 的 clear 逻辑，macOS 分支是空的。也就是说 vibrancy 一旦加上就关不掉。本项目已改用自定义命令 `set_panel_vibrancy`（见下文架构说明）。
+
+3. **`window-vibrancy::clear_vibrancy()` 必须在主线程调用**，否则返回 `Error::NotMainThread`。所以命令里用了 `run_on_main_thread`。
+
+4. **`windowEffects` 是窗口级材质，不能只作用于某个 DOM 元素**。曾经把它写进 `tauri.conf.json` 导致透明桌宠背后常驻玻璃板。现在配置里没有 `windowEffects`，vibrancy 完全由运行时控制。
+
+5. **`transform: scale()` 默认 `transform-origin: center`**，内容放大时向四周溢出会被窗口裁切。原生模式下用 `.pet-anchor--native`（flex 居中 + 固定 frame 尺寸 + center origin）解决。
+
+6. **气泡曾被裁切**：`translate(-50%, -80%)` 把气泡顶出窗口上半部；`white-space: nowrap` 又阻止换行。现在气泡是 `translate(-50%, 0)` + `white-space: normal` + `overflow-wrap: break-word`，完整落在窗口内、浮在宠物头顶。
+
+7. **TS 类型**：`setEffects` 必须用枚举 `Effect.Popover` / `EffectState.Active`（从 `@tauri-apps/api/window` 导入），字符串字面量会被 tsc 拦截。不过现在前端已不直接调 `setEffects`，走自定义命令。
+
+## 当前架构：毛玻璃 / 窗口控制
+
+- `src-tauri/src/lib.rs`：自定义命令 `set_panel_vibrancy(window: WebviewWindow, enabled: bool)`。
+  - `enabled=true`：`set_effects(EffectsBuilder::new().effect(Popover).state(Active).radius(18.0).build())`。
+  - `enabled=false`：`run_on_main_thread(move || window_vibrancy::clear_vibrancy(&win))`。
+  - 注册在 `invoke_handler`。
+- `src-tauri/Cargo.toml`：直接依赖 `window-vibrancy = "0.6"`（tauri 本身传递依赖它，版本已对齐 lock）。
+- `src/pet/nativeWindowClient.ts`：前端唯一窗口控制入口。
+  - `resizeWindowForPet(scale)`：setSize 回桌宠尺寸、恢复记录的位置、`invoke("set_panel_vibrancy", { enabled: false })`。
+  - `resizeWindowForSettingsPanel()`：记录 `outerPosition` → setSize(460×680) → `center()` → `invoke("set_panel_vibrancy", { enabled: true })`。
+  - 浏览器预览模式下这些调用会静默失败（try/catch），不影响 `npm run dev`。
+- `src/App.tsx`：`pet-anchor` 区分原生 / 浏览器模式；原生模式填满窗口 + `pet-anchor--native` 类；`onContextMenu` 右键打开设置。
+- capabilities（`src-tauri/capabilities/default.json`）：`core:default`、`allow-start-dragging`、`allow-set-position`、`allow-outer-position`、`allow-set-always-on-top`、`allow-set-size`、`allow-center`、`notification:default`、`store:default`、`window-state:default`。注意 `core:window:allow-set-effects` 已删除（不再用 JS 端 setEffects）；自定义 app 命令无需 capability 条目。
+- `gen/schemas/capabilities.json` 由 cargo 构建自动重新生成，改 capabilities 后跑一次 `cargo build` 即可同步。
+
+## 已验证 / 未验证
+
+已验证（2026-09-06）：
 
 ```text
- M src/App.tsx
- M src/pet/ambientInteractionScheduler.test.ts
- M src/pet/ambientInteractionScheduler.ts
- M src/pet/mealScheduler.test.ts
- M src/pet/mealScheduler.ts
- M src/pet/nativeMenuClient.test.ts
- M src/pet/nativeMenuClient.ts
- M src/pet/stateMachine.test.ts
- M src/pet/stateMachine.ts
-?? src/pet/SettingsPanel.tsx
-?? src/pet/nativeWindowClient.ts
-?? src/pet/petSettings.test.ts
-?? src/pet/petSettings.ts
+npm test        10 files, 50 tests passed
+npm run build   passed（tsc + vite）
+cargo test      passed
+cargo build     passed
 ```
 
-这些 WIP 已经做了什么：
+用户视觉 QA 已通过（本轮直接确认）：
 
-- `src/pet/petSettings.ts`
-  - 增加 `PetSettings` 配置模型。
-  - 默认值：
-    - 缩放 `1`
-    - 吃饭显示 `30` 秒
-    - 工作显示 `10` 分钟
-    - 待机随机冒泡间隔 `3` 分钟
-    - 午饭 `12:00`
-    - 晚饭 `18:30`
-    - 默认不暂停提醒
-    - 专注时段默认关闭，时间 `22:30-09:00`
-  - 保存键：`booch.pet.settings.v1`
-  - 目前用 `localStorage`，还没有迁到 Tauri store。
+- 桌宠纯透明无背景板。
+- 调大/调小后完整显示。
+- 打开设置→关闭后无背景板残留。
+- 气泡文字完整显示。
+- 右键桌宠能打开设置。
+- 设置面板有毛玻璃、可拖动。
 
-- `src/pet/SettingsPanel.tsx`
-  - 已创建设置面板组件。
-  - 已有大小、时长、饭点、不打扰、气泡文案、恢复/保存按钮。
-  - 但 CSS 还没写，视觉大概率很粗糙。
+未验证 / 已知取舍：
 
-- `src/App.tsx`
-  - 已接入 settings state。
-  - 饭点、待机随机冒泡、工作/吃饭停留时间已改为读取 settings。
-  - 已尝试根据桌宠大小或设置面板打开状态调整 Tauri 窗口尺寸。
+- 设置仍是 `localStorage`，还没迁 Tauri store；卸载/清缓存会丢设置。
+- 原生窗口 resize 在不同分辨率/外接屏下的表现没有系统性测过。
+- 视频抠背景在深色壁纸下的观感依赖用户反馈。
 
-- `src/pet/nativeMenuClient.ts`
-  - 已增加监听 `settings-panel-requested` 的前端封装。
-  - 但 Rust 菜单还没发这个事件，所以菜单入口还未真正打通。
+## 接手后的建议方向
 
-- 调度/状态机测试已扩展：
-  - 自定义饭点。
-  - 专注时段不打扰。
-  - 自定义待机冒泡间隔。
-  - 自定义气泡文案。
+按优先级：
 
-已验证：
+1. **设置持久化迁 Tauri store**（`store:default` 权限已就位），或至少保持现状并告知用户限制。
+2. **右键菜单扩展**：现在右键直接开设置；可以考虑加一个小菜单（设置 / 切换状态 / 退出），更符合桌宠惯例。做之前问用户。
+3. **气泡/交互打磨**：比如气泡出现动画、点击桌宠的反馈音效等，按用户反馈来。
+4. **第二阶段远程提醒**：涉及配对、身份、同步服务，需单独设计，不要顺手做。
 
-```text
+改动后的标准验证流程：
+
+```bash
+cd "/Users/bytedance/Documents/AI Explore/booch-desktop-pet"
 npm test
-10 test files passed, 50 tests passed
-
 npm run build
-passed
+PATH="/Users/bytedance/.cargo/bin:$PATH" cargo test --manifest-path src-tauri/Cargo.toml
+PATH="/Users/bytedance/.cargo/bin:$PATH" npm run tauri:dev   # 改了 Rust/conf 后必须完整重启
 ```
-
-未验证：
-
-- WIP 之后没有重新跑 Rust 测试。
-- 没有做设置面板的真实桌面端视觉 QA。
-- 没有验证窗口 resize 在 Tauri 权限下是否真的生效。
-
-## 接手后的建议顺序
-
-请按这个顺序继续，别一上来扩远程同步：
-
-1. 先确认当前工作区
-
-   ```bash
-   cd "/Users/bytedance/Documents/AI Explore/booch-desktop-pet"
-   git status --short --untracked-files=all
-   npm test
-   npm run build
-   ```
-
-2. 完成设置面板视觉
-
-   在 `src/styles.css` 里补齐：
-
-   - `.pet-stage--settings`
-   - `.settings-panel`
-   - `.settings-panel__header`
-   - `.settings-panel__section`
-   - `.settings-panel__segmented`
-   - `.settings-panel__inline`
-   - `.settings-panel__footer`
-   - 按钮、input、textarea 的基础样式
-
-   目标不是企业后台，而是“小桌宠的控制面板”：轻、软、可爱、可读。
-
-3. 打通状态栏菜单的设置入口
-
-   修改 `src-tauri/src/lib.rs`：
-
-   - 在菜单里新增一项，例如 `设置...`
-   - id 可用 `open-settings`
-   - 点击后 `app.emit("settings-panel-requested", true)` 或只 emit 一个事件
-
-   前端 `listenForSettingsPanelRequests` 已经在 WIP 里写好，但要对齐事件 payload。
-
-4. 给 Tauri 窗口 resize 补权限
-
-   目前 `src/pet/nativeWindowClient.ts` 调用了窗口 setSize。
-
-   `src-tauri/capabilities/default.json` 现在还没有：
-
-   ```json
-   "core:window:allow-set-size"
-   ```
-
-   如继续使用当前 resize 方案，需要补上。否则桌面端可能构建通过，但运行时 resize 失败。
-
-5. 优化设置表单编辑体验
-
-   `SettingsPanel.tsx` 现在 `updateDraft` 每次输入都会跑 `normalizePetSettings`。这会导致 textarea 如果被清空，会立刻回填默认文案，编辑体验不好。
-
-   建议：
-
-   - draft 保留用户正在输入的原始值。
-   - 点“保存设置”时再 normalize。
-   - 或至少 textarea 不要在每个字符输入时过滤空行。
-
-6. 补齐漏掉的文案配置项
-
-   `PetBubbleSettings` 里有：
-
-   - `eatClick`
-   - `workStart`
-
-   但当前面板只展示了：
-
-   - `idleClick`
-   - `workClick`
-   - `ambientIdle`
-   - `lunch`
-   - `dinner`
-
-   接手时决定：
-
-   - 要么把 `eatClick` 和 `workStart` 也显示出来；
-   - 要么从 schema 中删除暂时不用的项，避免隐藏配置。
-
-7. 真实运行桌面端视觉 QA
-
-   ```bash
-   PATH="/Users/bytedance/.cargo/bin:$PATH" npm run tauri:dev
-   ```
-
-   需要人工看：
-
-   - 桌宠是否还能透明趴在桌面上。
-   - 打开设置面板后窗口是否合理变大。
-   - 关闭设置后是否回到桌宠大小。
-   - 保存设置后，大小、饭点、停留时间、文案是否即时生效。
-   - 拖动位置是否仍然保存。
-   - 状态栏菜单是否能打开设置。
-
-8. 补跑 Rust 侧验证
-
-   如果改了 `src-tauri/src/lib.rs` 或 capabilities：
-
-   ```bash
-   PATH="/Users/bytedance/.cargo/bin:$PATH" cargo test --manifest-path src-tauri/Cargo.toml
-   ```
-
-9. 提交 WIP
-
-   设置面板真正可用后，再提交。建议提交信息：
-
-   ```text
-   feat: add booch settings panel
-   ```
 
 ## 关于“桌宠下面横杠”的判断
 
@@ -289,33 +199,23 @@ passed
 
 ## 运行命令备忘
 
-前端预览：
+前端预览（浏览器模式，窗口控制静默降级）：
 
 ```bash
 npm run dev
 ```
 
-桌面端：
+桌面端（改了 Rust 或 tauri.conf.json 后必须彻底重启，热更新不生效）：
 
 ```bash
 PATH="/Users/bytedance/.cargo/bin:$PATH" npm run tauri:dev
 ```
 
-测试：
+测试 / 构建：
 
 ```bash
 npm test
-```
-
-构建：
-
-```bash
 npm run build
-```
-
-Rust 侧测试：
-
-```bash
 PATH="/Users/bytedance/.cargo/bin:$PATH" cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
@@ -326,20 +226,14 @@ PATH="/Users/bytedance/.cargo/bin:$PATH" cargo test --manifest-path src-tauri/Ca
 - 不要把用户上传的视频当作可公开分发素材。
 - 不要把设计文档里的未实现项说成已经实现。
 - 不要为了遮横杠直接加不透明背景，除非用户明确接受“轮廓外不再完全透明”的取舍。
+- 不要给桌宠窗口加任何常驻 `windowEffects`/vibrancy——用户多次明确拒绝背景板；毛玻璃只能通过 `set_panel_vibrancy` 在设置面板期间临时开启。
+- 不要用 JS 端 `clearEffects()` 清 macOS vibrancy（是 no-op，会复现背景残留 bug）。
 
 ## 最小下一步
 
 如果只剩很少额度或时间，最小可交付是：
 
-1. 补 `src/styles.css` 的设置面板样式。
-2. 在 `src-tauri/src/lib.rs` 菜单里加“设置...”并 emit `settings-panel-requested`。
-3. 在 `src-tauri/capabilities/default.json` 加窗口 set size 权限。
-4. 跑：
-
-   ```bash
-   npm test
-   npm run build
-   PATH="/Users/bytedance/.cargo/bin:$PATH" cargo test --manifest-path src-tauri/Cargo.toml
-   ```
-
-5. 打开 `npm run tauri:dev` 做一次真实视觉检查，再提交。
+1. 挑「接手后的建议方向」里的第 1 项（设置迁 Tauri store）做掉。
+2. 跑标准验证流程（见上）。
+3. `npm run tauri:dev` 做一次真实视觉检查。
+4. 确认无误后提交，提交信息建议 `feat: persist settings via tauri store`。
