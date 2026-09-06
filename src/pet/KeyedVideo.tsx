@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { removeBackgroundPixels, sampleCornerColor } from "./backgroundKeyer";
+import { getBoochVideoCropRect } from "./videoCrop";
 
 const boochBackgroundThreshold = 18;
 
@@ -33,20 +34,44 @@ export function KeyedVideo({ src }: KeyedVideoProps) {
         const context = canvas.getContext("2d", { willReadFrequently: true });
 
         if (width > 0 && height > 0 && context) {
-          if (canvas.width !== width || canvas.height !== height) {
-            canvas.width = width;
-            canvas.height = height;
+          const crop = getBoochVideoCropRect(width, height);
+
+          if (
+            canvas.width !== crop.sourceWidth ||
+            canvas.height !== crop.sourceHeight
+          ) {
+            canvas.width = crop.sourceWidth;
+            canvas.height = crop.sourceHeight;
           }
 
-          context.clearRect(0, 0, width, height);
-          context.drawImage(video, 0, 0, width, height);
+          context.clearRect(0, 0, crop.sourceWidth, crop.sourceHeight);
+          context.drawImage(
+            video,
+            crop.sourceX,
+            crop.sourceY,
+            crop.sourceWidth,
+            crop.sourceHeight,
+            0,
+            0,
+            crop.sourceWidth,
+            crop.sourceHeight,
+          );
 
-          const imageData = context.getImageData(0, 0, width, height);
-          const keyColor = sampleCornerColor(imageData.data, width, height);
+          const imageData = context.getImageData(
+            0,
+            0,
+            crop.sourceWidth,
+            crop.sourceHeight,
+          );
+          const keyColor = sampleCornerColor(
+            imageData.data,
+            crop.sourceWidth,
+            crop.sourceHeight,
+          );
           removeBackgroundPixels(
             imageData.data,
-            width,
-            height,
+            crop.sourceWidth,
+            crop.sourceHeight,
             keyColor,
             boochBackgroundThreshold,
           );

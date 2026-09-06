@@ -7,6 +7,10 @@ use tauri::{
 
 fn setup_tray_menu(app: &mut tauri::App) -> tauri::Result<()> {
     let menu = MenuBuilder::new(app)
+        .text("show-idle", "切到待机")
+        .text("show-work", "切到工作")
+        .text("show-eat", "切到吃饭")
+        .separator()
         .text("pause-reminders", "暂停提醒")
         .text("resume-reminders", "恢复提醒")
         .separator()
@@ -18,7 +22,13 @@ fn setup_tray_menu(app: &mut tauri::App) -> tauri::Result<()> {
         .menu(&menu)
         .show_menu_on_left_click(true)
         .on_menu_event(|app, event| {
-            if event.id() == "pause-reminders" {
+            if event.id() == "show-idle" {
+                let _ = app.emit("pet-state-requested", "idle");
+            } else if event.id() == "show-work" {
+                let _ = app.emit("pet-state-requested", "work");
+            } else if event.id() == "show-eat" {
+                let _ = app.emit("pet-state-requested", "eat");
+            } else if event.id() == "pause-reminders" {
                 let _ = app.emit("reminders-paused-changed", true);
             } else if event.id() == "resume-reminders" {
                 let _ = app.emit("reminders-paused-changed", false);

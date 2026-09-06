@@ -16,6 +16,16 @@ describe("reducePetState", () => {
     });
   });
 
+  it("selects a requested visible state from the native menu", () => {
+    expect(
+      reducePetState(idle, { type: "select-state", state: "eat" }, 1500),
+    ).toMatchObject({
+      state: "eat",
+      bubble: "饭饭时间",
+      lastInteractionAt: 1500,
+    });
+  });
+
   it("switches to eat mode for a meal reminder", () => {
     expect(
       reducePetState(idle, { type: "meal-reminder", meal: "lunch" }, 2000),

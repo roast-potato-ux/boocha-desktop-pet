@@ -30,6 +30,18 @@ export function reducePetState(
     };
   }
 
+  if (event.type === "select-state") {
+    if (event.state === "idle") {
+      return { state: "idle", bubble: null, lastInteractionAt: now };
+    }
+
+    if (event.state === "work") {
+      return { state: "work", bubble: "开始认真搬砖", lastInteractionAt: now };
+    }
+
+    return { state: "eat", bubble: "饭饭时间", lastInteractionAt: now };
+  }
+
   if (event.type === "pet-click") {
     const linesByState = {
       idle: idleClickLines,

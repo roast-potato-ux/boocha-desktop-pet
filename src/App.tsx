@@ -9,7 +9,10 @@ import {
   createInitialMealReminderState,
   evaluateMealReminder,
 } from "./pet/mealScheduler";
-import { listenForReminderPauseChanges } from "./pet/nativeMenuClient";
+import {
+  listenForPetStateRequests,
+  listenForReminderPauseChanges,
+} from "./pet/nativeMenuClient";
 import {
   applyDrag,
   getDefaultPetPosition,
@@ -109,8 +112,20 @@ export default function App() {
   }, [pet.bubble, pet.lastInteractionAt]);
 
   useEffect(() => {
+    let unlistenStateRequests: (() => void) | null = null;
     let unlisten: (() => void) | null = null;
     let cancelled = false;
+
+    void listenForPetStateRequests((state) => {
+      dispatch({ type: "select-state", state });
+    }).then((nextUnlisten) => {
+      if (cancelled) {
+        nextUnlisten();
+        return;
+      }
+
+      unlistenStateRequests = nextUnlisten;
+    });
 
     void listenForReminderPauseChanges((paused) => {
       setRemindersPaused(paused);
@@ -125,6 +140,7 @@ export default function App() {
 
     return () => {
       cancelled = true;
+      unlistenStateRequests?.();
       unlisten?.();
     };
   }, []);

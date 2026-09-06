@@ -15,6 +15,7 @@ Open `http://127.0.0.1:1420/`.
 - Click the pet to show a short bubble.
 - While idle, the pet occasionally shows a short ambient bubble on its own without switching out of idle mode.
 - Double-click the pet to cycle through idle, work, eat, then back to idle.
+- In the macOS desktop app, the status bar menu can directly switch the pet to idle, work, or eat.
 - At 12:00 and 18:30 local time, the preview switches the pet to eat.
 - In the macOS desktop app, use the status bar menu to pause reminders, resume reminders, or quit Booch.
 

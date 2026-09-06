@@ -7,6 +7,7 @@ export type PetEvent =
   | { type: "ambient-interaction"; seed: number }
   | { type: "start-work" }
   | { type: "stop-work" }
+  | { type: "select-state"; state: PetState }
   | { type: "meal-reminder"; meal: MealKind }
   | { type: "cycle-state" }
   | { type: "clear-bubble"; interactionAt: number }
