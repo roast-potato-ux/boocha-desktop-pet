@@ -19,3 +19,4 @@ tauri = { version = "2", features = ["macos-private-api", "tray-icon"] }
 tauri-plugin-notification = "2"
 tauri-plugin-store = "2"
 tauri-plugin-window-state = "2"
+window-vibrancy = "0.6"

@@ -29,6 +29,20 @@ body,
   touch-action: none;
 }
 
+/* In the native window the anchor fills the window, so center the scaled pet
+   inside it instead of letting it overflow from a stale CSS position. */
+.pet-anchor--native {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pet-anchor--native .pet-scale-frame {
+  width: 188px;
+  height: 220px;
+  transform-origin: center center;
+}
+
 .pet-shell {
   position: relative;
   width: 188px;
@@ -85,9 +99,14 @@ body,
   background: rgb(255 255 255 / 86%);
   box-shadow: 0 8px 22px rgb(43 33 22 / 14%);
   font-size: 13px;
-  line-height: 1.35;
-  white-space: nowrap;
-  transform: translate(-50%, -80%);
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-align: center;
+  /* Keep the bubble fully inside the pet window (it floats just above the
+     pet's ears). The old -80% vertical shift pushed the bubble up out of the
+     window, clipping the text. */
+  transform: translate(-50%, 0);
 }
 
 @keyframes idle-breathe {
@@ -127,7 +146,7 @@ body,
 
 .pet-stage--settings {
   overflow-y: auto;
-  background: #f6efe3;
+  background: transparent;
 }
 
 .pet-stage--settings .pet-anchor {
@@ -138,11 +157,15 @@ body,
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   min-height: 100%;
   padding: 18px 18px 24px;
-  color: #25211d;
-  background: #f6efe3;
+  color: #1c1c1e;
+  background: rgb(246 245 244 / 62%);
+  -webkit-backdrop-filter: blur(30px) saturate(160%);
+  backdrop-filter: blur(30px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 45%);
+  border-radius: 18px;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
   user-select: none;
 }
@@ -159,7 +182,7 @@ body,
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #b0834f;
+  color: #98989d;
 }
 
 .settings-panel__header h1 {
@@ -174,14 +197,14 @@ body,
   border: 0;
   border-radius: 9px;
   background: transparent;
-  color: #8a7a64;
+  color: #6e6e73;
   font-size: 13px;
   cursor: pointer;
 }
 
 .settings-panel__ghost-button:hover {
-  background: rgb(0 0 0 / 5%);
-  color: #25211d;
+  background: rgb(0 0 0 / 6%);
+  color: #1c1c1e;
 }
 
 .settings-panel__section {
@@ -189,17 +212,17 @@ body,
   flex-direction: column;
   gap: 12px;
   padding: 14px 14px 16px;
-  border: 1px solid #eee1cd;
-  border-radius: 16px;
-  background: #fffdf8;
-  box-shadow: 0 2px 10px rgb(72 51 20 / 5%);
+  border: 1px solid rgb(255 255 255 / 50%);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 52%);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 5%);
 }
 
 .settings-panel__section h2 {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #5c4b33;
+  color: #6e6e73;
 }
 
 .settings-panel__section > label {
@@ -207,7 +230,7 @@ body,
   flex-direction: column;
   gap: 6px;
   font-size: 13px;
-  color: #6b5d4b;
+  color: #6e6e73;
 }
 
 .settings-panel__section input[type="number"],
@@ -216,21 +239,21 @@ body,
   box-sizing: border-box;
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid #e3d6bf;
+  border: 1px solid rgb(0 0 0 / 10%);
   border-radius: 10px;
-  background: #fffefb;
-  color: #25211d;
+  background: rgb(255 255 255 / 68%);
+  color: #1c1c1e;
   font-size: 13px;
   font-family: inherit;
-  accent-color: #e0a04a;
+  accent-color: #007aff;
 }
 
 .settings-panel__section input[type="number"]:focus,
 .settings-panel__section input[type="time"]:focus,
 .settings-panel__section textarea:focus {
   outline: none;
-  border-color: #e0a04a;
-  box-shadow: 0 0 0 3px rgb(224 160 74 / 18%);
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgb(0 122 255 / 18%);
 }
 
 .settings-panel__section textarea {
@@ -241,11 +264,11 @@ body,
 
 .settings-panel__section input[type="range"] {
   width: 100%;
-  accent-color: #e0a04a;
+  accent-color: #007aff;
 }
 
 .settings-panel__section input[type="checkbox"] {
-  accent-color: #e0a04a;
+  accent-color: #007aff;
 }
 
 .settings-panel__check {
@@ -254,7 +277,7 @@ body,
   align-items: center;
   gap: 8px !important;
   font-size: 13px;
-  color: #6b5d4b;
+  color: #6e6e73;
   cursor: pointer;
 }
 
@@ -262,30 +285,30 @@ body,
   display: flex;
   gap: 6px;
   padding: 4px;
-  border-radius: 12px;
-  background: #efe5d2;
+  border-radius: 11px;
+  background: rgb(0 0 0 / 6%);
 }
 
 .settings-panel__segmented button {
   flex: 1;
   padding: 7px 0;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   background: transparent;
-  color: #7a6a53;
+  color: #6e6e73;
   font-size: 13px;
   cursor: pointer;
 }
 
 .settings-panel__segmented button:hover {
-  color: #25211d;
+  color: #1c1c1e;
 }
 
 .settings-panel__segmented button[data-active="true"] {
-  background: #fffdf8;
-  color: #25211d;
+  background: rgb(255 255 255 / 95%);
+  color: #1c1c1e;
   font-weight: 600;
-  box-shadow: 0 1px 4px rgb(72 51 20 / 12%);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
 }
 
 .settings-panel__inline {
@@ -299,7 +322,7 @@ body,
   flex-direction: column;
   gap: 6px;
   font-size: 13px;
-  color: #6b5d4b;
+  color: #6e6e73;
 }
 
 .settings-panel__footer {
@@ -311,27 +334,27 @@ body,
 
 .settings-panel__footer button {
   padding: 9px 16px;
-  border: 1px solid #e3d6bf;
-  border-radius: 12px;
-  background: #fffdf8;
-  color: #6b5d4b;
+  border: 1px solid rgb(0 0 0 / 10%);
+  border-radius: 11px;
+  background: rgb(255 255 255 / 70%);
+  color: #6e6e73;
   font-size: 13px;
   cursor: pointer;
 }
 
 .settings-panel__footer button:hover {
-  border-color: #d8c7a8;
-  color: #25211d;
+  border-color: rgb(0 0 0 / 18%);
+  color: #1c1c1e;
 }
 
 .settings-panel__primary-button {
   border-color: transparent !important;
-  background: #e0a04a !important;
+  background: #007aff !important;
   color: #fff !important;
   font-weight: 600;
 }
 
 .settings-panel__primary-button:hover {
-  background: #d3933a !important;
+  background: #0066d6 !important;
   color: #fff !important;
 }

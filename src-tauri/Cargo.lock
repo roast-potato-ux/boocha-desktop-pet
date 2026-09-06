@@ -297,6 +297,7 @@ dependencies = [
  "tauri-plugin-notification",
  "tauri-plugin-store",
  "tauri-plugin-window-state",
+ "window-vibrancy",
 ]
 
 [[package]]

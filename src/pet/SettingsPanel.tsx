@@ -48,10 +48,12 @@ export function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps)
 
   return (
     <section className="settings-panel" aria-label="Booch 设置面板">
-      <header className="settings-panel__header">
-        <div>
-          <p className="settings-panel__eyebrow">Booch Desktop Pet</p>
-          <h1>设置</h1>
+      <header className="settings-panel__header" data-tauri-drag-region>
+        <div data-tauri-drag-region>
+          <p className="settings-panel__eyebrow" data-tauri-drag-region>
+            Booch Desktop Pet
+          </p>
+          <h1 data-tauri-drag-region>设置</h1>
         </div>
         <button className="settings-panel__ghost-button" type="button" onClick={onClose}>
           关闭

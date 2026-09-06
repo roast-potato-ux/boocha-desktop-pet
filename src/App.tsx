@@ -240,13 +240,22 @@ export default function App() {
         />
       ) : null}
       <div
-        className="pet-anchor"
-        style={{
-          left: position.left,
-          top: position.top,
-          width: 188 * settings.scale,
-          height: 220 * settings.scale,
-        }}
+        className={`pet-anchor${isNativePetWindowAvailable() ? " pet-anchor--native" : ""}`}
+        style={
+          isNativePetWindowAvailable()
+            ? {
+                left: 0,
+                top: 0,
+                width: "100%",
+                height: "100%",
+              }
+            : {
+                left: position.left,
+                top: position.top,
+                width: 188 * settings.scale,
+                height: 220 * settings.scale,
+              }
+        }
         onPointerDown={(event) => {
           if (event.button !== 0 || isNativePetWindowAvailable()) {
             return;
@@ -286,6 +295,12 @@ export default function App() {
           event.currentTarget.releasePointerCapture(event.pointerId);
           setPosition(nextPosition);
           savePetPosition(window.localStorage, nextPosition);
+        }}
+        onContextMenu={(event) => {
+          // Right-clicking the pet opens the settings panel, so you don't have
+          // to hunt for the menu bar tray icon.
+          event.preventDefault();
+          setSettingsOpen(true);
         }}
       >
         <div

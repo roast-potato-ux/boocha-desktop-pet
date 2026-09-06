@@ -5,6 +5,40 @@ use tauri::{
     Manager,
 };
 
+/// Toggle the macOS native window vibrancy behind the settings panel.
+///
+/// We can't rely on `clearEffects()` from the JS side: in Tauri 2.11.5 that
+/// command maps to `set_effects(null)`, whose `else` branch only clears effects
+/// on Windows. On macOS it is a silent no-op, so the popover vibrancy applied
+/// while the settings panel is open would stick around forever (the ghost
+/// "background board" you saw after closing settings). We expose our own
+/// command that calls `window_vibrancy::clear_vibrancy()` directly.
+#[tauri::command]
+fn set_panel_vibrancy(window: tauri::WebviewWindow, enabled: bool) -> Result<(), String> {
+    if enabled {
+        window
+            .set_effects(
+                tauri::window::EffectsBuilder::new()
+                    .effect(tauri::window::Effect::Popover)
+                    .state(tauri::window::EffectState::Active)
+                    .radius(18.0)
+                    .build(),
+            )
+            .map_err(|e| e.to_string())?;
+    } else {
+        #[cfg(target_os = "macos")]
+        {
+            let win = window.clone();
+            window
+                .run_on_main_thread(move || {
+                    let _ = window_vibrancy::clear_vibrancy(&win);
+                })
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    Ok(())
+}
+
 fn setup_tray_menu(app: &mut tauri::App) -> tauri::Result<()> {
     let menu = MenuBuilder::new(app)
         .text("show-idle", "切到待机")
@@ -57,6 +91,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
+        .invoke_handler(tauri::generate_handler![set_panel_vibrancy])
         .setup(|app| {
             setup_tray_menu(app)?;
             Ok(())
