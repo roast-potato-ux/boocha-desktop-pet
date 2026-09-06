@@ -253,7 +253,7 @@ export default function App() {
                 left: position.left,
                 top: position.top,
                 width: 188 * settings.scale,
-                height: 220 * settings.scale,
+                height: 240 * settings.scale,
               }
         }
         onPointerDown={(event) => {

@@ -29,17 +29,28 @@ body,
   touch-action: none;
 }
 
+/* The scale frame is 188px wide, 240px tall: a 52px transparent headroom band
+   on top for the speech bubble plus the 188px pet block below. The pet is
+   anchored to the bottom so the bubble floats just above its head without
+   covering it. Must match petWindowBaseHeight (220 -> 240) in nativeWindowClient. */
+.pet-scale-frame {
+  width: 188px;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
 /* In the native window the anchor fills the window, so center the scaled pet
    inside it instead of letting it overflow from a stale CSS position. */
 .pet-anchor--native {
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
 }
 
 .pet-anchor--native .pet-scale-frame {
-  width: 188px;
-  height: 220px;
   transform-origin: center center;
 }
 
@@ -89,24 +100,60 @@ body,
 
 .pet-bubble {
   position: absolute;
+  /* The pet is anchored to the bottom of the frame. This bubble sits in the
+     transparent headroom band and is nudged down so its tail meets the pet's
+     head instead of floating high above it. */
   top: 0;
-  left: 50%;
-  z-index: 1;
-  max-width: 180px;
-  margin: 0;
-  padding: 8px 10px;
-  border-radius: 14px;
-  background: rgb(255 255 255 / 86%);
-  box-shadow: 0 8px 22px rgb(43 33 22 / 14%);
+  /* Center horizontally via left:0/right:0 + auto margins. Using `left: 50%`
+     restrains fit-content width to half the window (94px), which can't hold 6
+     CJK chars and forces a wrap — so avoid it here. */
+  left: 0;
+  right: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  /* Size to the text: 1 full-width char up to 8, on a single line. max-content
+     lets the box grow to fit text up to the cap. A CJK glyph is ~1em wide at
+     this font-size, so the horizontal padding (12px*2) and border (2*1px) must
+     be added to the em cap or 8 characters get squeezed into a wrap. */
+  width: max-content;
+  min-width: calc(1em + 26px);
+  max-width: calc(8em + 26px);
+  margin: 0 auto;
+  padding: 7px 12px;
+  border-radius: 12px;
+  /* Frosted-glass white bubble (matches the macOS glass look of the settings
+     panel). backdrop-filter blurs the pet video behind it inside the webview. */
+  background: rgb(255 255 255 / 72%);
+  color: #26221c;
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  backdrop-filter: blur(14px) saturate(1.6);
+  border: 1px solid rgb(255 255 255 / 65%);
+  box-shadow: 0 3px 10px rgb(60 47 30 / 12%);
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.35;
+  /* Up to 8 chars fit on one line (max-width caps at 8em + padding); only longer
+     messages wrap. Needs normal (not nowrap) so overflow clips instead of
+     spilling past the max-width. */
   white-space: normal;
   overflow-wrap: break-word;
   text-align: center;
-  /* Keep the bubble fully inside the pet window (it floats just above the
-     pet's ears). The old -80% vertical shift pushed the bubble up out of the
-     window, clipping the text. */
-  transform: translate(-50%, 0);
+  /* Drop it toward the pet's head so the tail visually meets the top of the pet
+     instead of hanging in empty space. */
+  transform: translateY(10px);
+}
+
+/* Speech-bubble tail pointing down toward the pet's head. */
+.pet-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 9px solid rgb(255 255 255 / 85%);
 }
 
 @keyframes idle-breathe {

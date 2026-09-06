@@ -6,7 +6,10 @@ import {
 } from "@tauri-apps/api/window";
 
 const petWindowBaseWidth = 220;
-const petWindowBaseHeight = 220;
+// The pet block (pet-shell) is 188px tall; on top of it we reserve a transparent
+// headroom band (bubbleHeadroom = 52px) for the speech bubble so it floats above
+// the pet's head without covering it. Must match .pet-scale-frame height.
+const petWindowBaseHeight = 240;
 const settingsWindowWidth = 460;
 const settingsWindowHeight = 680;
 
