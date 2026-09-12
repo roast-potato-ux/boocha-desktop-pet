@@ -29,18 +29,43 @@ export function reducePetState(
   if (event.type === "start-work") {
     return {
       state: "work",
+      previousState: null,
       bubble: pickLine(bubbles.workStart, now),
       lastInteractionAt: now,
     };
   }
 
-  if (event.type === "stop-work" || event.type === "return-idle") {
-    return { state: "idle", bubble: null, lastInteractionAt: now };
+  if (event.type === "stop-work") {
+    return {
+      state: "idle",
+      previousState: null,
+      bubble: null,
+      lastInteractionAt: now,
+    };
+  }
+
+  if (event.type === "return-previous") {
+    return {
+      state: current.previousState ?? "idle",
+      previousState: null,
+      bubble: null,
+      lastInteractionAt: now,
+    };
+  }
+
+  if (event.type === "countdown-complete") {
+    return {
+      state: "idle",
+      previousState: null,
+      bubble: event.bubble,
+      lastInteractionAt: now,
+    };
   }
 
   if (event.type === "meal-reminder") {
     return {
       state: "eat",
+      previousState: current.state,
       bubble: pickLine(
         event.meal === "lunch" ? bubbles.lunch : bubbles.dinner,
         now,
@@ -51,12 +76,18 @@ export function reducePetState(
 
   if (event.type === "select-state") {
     if (event.state === "idle") {
-      return { state: "idle", bubble: null, lastInteractionAt: now };
+      return {
+        state: "idle",
+        previousState: null,
+        bubble: null,
+        lastInteractionAt: now,
+      };
     }
 
     if (event.state === "work") {
       return {
         state: "work",
+        previousState: null,
         bubble: pickLine(bubbles.workStart, now),
         lastInteractionAt: now,
       };
@@ -64,6 +95,7 @@ export function reducePetState(
 
     return {
       state: "eat",
+      previousState: null,
       bubble: pickLine(bubbles.eatClick, now),
       lastInteractionAt: now,
     };
@@ -110,6 +142,7 @@ export function reducePetState(
     if (current.state === "idle") {
       return {
         state: "work",
+        previousState: null,
         bubble: pickLine(bubbles.workStart, now),
         lastInteractionAt: now,
       };
@@ -118,12 +151,18 @@ export function reducePetState(
     if (current.state === "work") {
       return {
         state: "eat",
+        previousState: null,
         bubble: pickLine(bubbles.lunch, now),
         lastInteractionAt: now,
       };
     }
 
-    return { state: "idle", bubble: null, lastInteractionAt: now };
+    return {
+      state: "idle",
+      previousState: null,
+      bubble: null,
+      lastInteractionAt: now,
+    };
   }
 
   return current;
