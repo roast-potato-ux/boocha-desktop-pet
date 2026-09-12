@@ -192,12 +192,24 @@ body,
 /* ---- Settings panel ---- */
 
 .pet-stage--settings {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  box-sizing: border-box;
   overflow-y: auto;
   background: transparent;
 }
 
 .pet-stage--settings .pet-anchor {
-  display: none;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.pet-stage--settings .settings-panel {
+  width: 460px;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .settings-panel {

@@ -10,8 +10,8 @@ const petWindowBaseWidth = 220;
 // headroom band (bubbleHeadroom = 52px) for the speech bubble so it floats above
 // the pet's head without covering it. Must match .pet-scale-frame height.
 const petWindowBaseHeight = 240;
-const settingsWindowWidth = 460;
-const settingsWindowHeight = 680;
+const settingsWindowWidth = 720;
+const settingsWindowHeight = 700;
 
 // Remember where the pet window was before we expanded it into the settings
 // panel, so we can put it back exactly after closing settings.
