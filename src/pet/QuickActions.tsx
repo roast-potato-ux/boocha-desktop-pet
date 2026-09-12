@@ -1,3 +1,5 @@
+import type { MouseEvent, SyntheticEvent } from "react";
+
 interface QuickActionsProps {
   mode: "main" | "countdown";
   onShowCountdownOptions: () => void;
@@ -5,6 +7,19 @@ interface QuickActionsProps {
   onStartCustomCountdown: () => void;
   onToggleStopwatch: () => void;
   onOpenSettings: () => void;
+}
+
+function preventPetInteraction(event: SyntheticEvent) {
+  event.stopPropagation();
+}
+
+function runQuickAction(
+  action: () => void,
+): (event: MouseEvent<HTMLButtonElement>) => void {
+  return (event) => {
+    preventPetInteraction(event);
+    action();
+  };
 }
 
 export function QuickActions({
@@ -22,7 +37,9 @@ export function QuickActions({
           type="button"
           className="quick-action quick-action--top"
           aria-label="开始 5 分钟倒计时"
-          onClick={() => onStartCountdown(5)}
+          onPointerDown={preventPetInteraction}
+          onDoubleClick={preventPetInteraction}
+          onClick={runQuickAction(() => onStartCountdown(5))}
         >
           5
         </button>
@@ -30,7 +47,9 @@ export function QuickActions({
           type="button"
           className="quick-action quick-action--upper-right"
           aria-label="开始 15 分钟倒计时"
-          onClick={() => onStartCountdown(15)}
+          onPointerDown={preventPetInteraction}
+          onDoubleClick={preventPetInteraction}
+          onClick={runQuickAction(() => onStartCountdown(15))}
         >
           15
         </button>
@@ -38,7 +57,9 @@ export function QuickActions({
           type="button"
           className="quick-action quick-action--right"
           aria-label="开始 30 分钟倒计时"
-          onClick={() => onStartCountdown(30)}
+          onPointerDown={preventPetInteraction}
+          onDoubleClick={preventPetInteraction}
+          onClick={runQuickAction(() => onStartCountdown(30))}
         >
           30
         </button>
@@ -46,7 +67,9 @@ export function QuickActions({
           type="button"
           className="quick-action quick-action--lower-right"
           aria-label="使用自定义时长开始倒计时"
-          onClick={onStartCustomCountdown}
+          onPointerDown={preventPetInteraction}
+          onDoubleClick={preventPetInteraction}
+          onClick={runQuickAction(onStartCustomCountdown)}
         >
           自
         </button>
@@ -56,13 +79,34 @@ export function QuickActions({
 
   return (
     <div className="quick-actions" aria-label="桌宠快捷操作">
-      <button type="button" className="quick-action quick-action--top" aria-label="倒计时" onClick={onShowCountdownOptions}>
+      <button
+        type="button"
+        className="quick-action quick-action--top"
+        aria-label="倒计时"
+        onPointerDown={preventPetInteraction}
+        onDoubleClick={preventPetInteraction}
+        onClick={runQuickAction(onShowCountdownOptions)}
+      >
         ⏳
       </button>
-      <button type="button" className="quick-action quick-action--right" aria-label="计时器" onClick={onToggleStopwatch}>
+      <button
+        type="button"
+        className="quick-action quick-action--right"
+        aria-label="计时器"
+        onPointerDown={preventPetInteraction}
+        onDoubleClick={preventPetInteraction}
+        onClick={runQuickAction(onToggleStopwatch)}
+      >
         ⏱
       </button>
-      <button type="button" className="quick-action quick-action--lower-right" aria-label="设置" onClick={onOpenSettings}>
+      <button
+        type="button"
+        className="quick-action quick-action--lower-right"
+        aria-label="设置"
+        onPointerDown={preventPetInteraction}
+        onDoubleClick={preventPetInteraction}
+        onClick={runQuickAction(onOpenSettings)}
+      >
         ⚙
       </button>
     </div>
