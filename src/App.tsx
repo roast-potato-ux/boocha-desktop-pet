@@ -31,6 +31,8 @@ import {
   savePetSettings,
 } from "./pet/petSettings";
 import type { PetSettings } from "./pet/petSettings";
+import { createCustomCountdownDraft } from "./pet/customCountdown";
+import type { CustomCountdownDraft } from "./pet/customCountdown";
 import {
   createInactiveFocusTimer,
   evaluateFocusTimer,
@@ -38,6 +40,7 @@ import {
   pauseFocusTimer,
   resumeFocusTimer,
   startCountdown,
+  startCountdownSeconds,
   startStopwatch,
   stopFocusTimer,
 } from "./pet/focusTimer";
@@ -72,6 +75,8 @@ export default function App() {
     createInactiveFocusTimer(),
   );
   const [timerDisplay, setTimerDisplay] = useState<string | null>(null);
+  const [customCountdownDraft, setCustomCountdownDraft] =
+    useState<CustomCountdownDraft | null>(null);
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   const [quickActionMode, setQuickActionMode] = useState<"main" | "countdown">(
     "main",
@@ -131,8 +136,24 @@ export default function App() {
 
   const startCountdownForMinutes = (minutes: number) => {
     setFocusTimer(startCountdown(Date.now(), minutes));
+    setCustomCountdownDraft(null);
     setTimerDisplay(null);
     dispatchPet({ type: "select-state", state: "work" });
+    closeQuickActions();
+  };
+
+  const startCountdownForSeconds = (seconds: number) => {
+    setFocusTimer(startCountdownSeconds(Date.now(), seconds));
+    setCustomCountdownDraft(null);
+    setTimerDisplay(null);
+    dispatchPet({ type: "select-state", state: "work" });
+  };
+
+  const openCustomCountdown = () => {
+    setFocusTimer(stopFocusTimer());
+    setTimerDisplay(null);
+    setCustomCountdownDraft(createCustomCountdownDraft());
+    dispatchPet({ type: "select-state", state: "idle" });
     closeQuickActions();
   };
 
@@ -164,6 +185,7 @@ export default function App() {
 
   const cancelFocusTimer = () => {
     setFocusTimer(stopFocusTimer());
+    setCustomCountdownDraft(null);
     setTimerDisplay(null);
     dispatchPet({ type: "select-state", state: "idle" });
   };
@@ -174,8 +196,7 @@ export default function App() {
       setTimerDisplay(result.display);
 
       if (result.completed) {
-        const line =
-          settings.timer.countdownCompleteLines[0] ?? "时间到，休息一下";
+        const line = settings.timer.countdownCompleteLines[0] ?? null;
         dispatchPet({ type: "countdown-complete", bubble: line });
       }
 
@@ -416,7 +437,18 @@ export default function App() {
           {/* The pet column is 188px wide and sits at the left of the wider
               frame; the spare band on the right is where the quick actions arc. */}
           <div className="pet-column">
-            {focusTimerActive && timerDisplay ? (
+            {customCountdownDraft ? (
+              <TimerBadge
+                display="00:00"
+                paused={false}
+                onTogglePause={() => undefined}
+                onCancel={() => setCustomCountdownDraft(null)}
+                mode="editing"
+                draft={customCountdownDraft}
+                onDraftChange={setCustomCountdownDraft}
+                onStart={startCountdownForSeconds}
+              />
+            ) : focusTimerActive && timerDisplay ? (
               <TimerBadge
                 display={timerDisplay}
                 paused={focusTimerPaused}
@@ -444,9 +476,7 @@ export default function App() {
               mode={quickActionMode}
               onShowCountdownOptions={() => setQuickActionMode("countdown")}
               onStartCountdown={startCountdownForMinutes}
-              onStartCustomCountdown={() =>
-                startCountdownForMinutes(settings.timer.customCountdownMinutes)
-              }
+              onStartCustomCountdown={openCustomCountdown}
               onToggleStopwatch={toggleStopwatch}
               onOpenSettings={() => {
                 closeQuickActions();

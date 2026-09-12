@@ -46,49 +46,54 @@ afterEach(() => {
 });
 
 describe("SettingsPanel", () => {
-  it("shows countdown settings instead of retired reminder and work-duration controls", () => {
+  it("shows countdown completion tags instead of a custom-minute field", () => {
     renderSettingsPanel();
 
     expect(container?.textContent).toContain("计时和倒计时");
     expect(container?.querySelector('input[type="number"][min="1"][max="180"]'))
-      .not.toBeNull();
+      .toBeNull();
     expect(container?.textContent).toContain("倒计时结束提示");
     expect(container?.textContent).not.toContain("工作状态显示分钟数");
     expect(container?.textContent).not.toContain("暂停提醒");
     expect(container?.textContent).not.toContain("专注时段不打扰");
   });
 
-  it("previews custom countdown edits with normalized completion lines", () => {
+  it("adds and removes countdown completion tags while keeping one line", () => {
     const onPreviewSettings = renderSettingsPanel();
-    const inputs = container?.querySelectorAll<HTMLInputElement>('input[type="number"]');
-    const customCountdownInput = Array.from(inputs ?? []).find(
-      (input) => input.min === "1" && input.max === "180",
-    );
-    const completionTextarea = Array.from(
-      container?.querySelectorAll<HTMLTextAreaElement>("textarea") ?? [],
-    ).find((textarea) => textarea.value === "时间到，休息一下");
+    const completionEditor = container?.querySelector('[data-bubble-field="countdownCompleteLines"]');
+    const completionInput = completionEditor?.querySelector<HTMLInputElement>('input');
+    const addButton = completionEditor?.querySelector<HTMLButtonElement>('button[aria-label="添加倒计时结束提示"]');
+    const removeButton = completionEditor?.querySelector<HTMLButtonElement>('button[aria-label="删除气泡文案：时间到，休息一下"]');
 
-    expect(customCountdownInput).toBeDefined();
-    expect(completionTextarea).toBeDefined();
+    expect(completionInput).not.toBeNull();
+    expect(addButton).not.toBeNull();
+    expect(removeButton).not.toBeNull();
 
     act(() => {
-      if (customCountdownInput) {
-        setNativeValue(customCountdownInput, "40");
-      }
-    });
-    act(() => {
-      if (completionTextarea) {
-        setNativeValue(completionTextarea, "完成啦\n  休息一下  ");
-      }
+      if (completionInput) setNativeValue(completionInput, "完成啦");
+      addButton?.click();
     });
 
     expect(onPreviewSettings).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        timer: {
-          customCountdownMinutes: 40,
-          countdownCompleteLines: ["完成啦", "休息一下"],
-        },
+        timer: { countdownCompleteLines: ["时间到，休息一下", "完成啦"] },
       }),
     );
+
+    act(() => {
+      removeButton?.click();
+    });
+
+    expect(onPreviewSettings).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        timer: { countdownCompleteLines: ["完成啦"] },
+      }),
+    );
+  });
+
+  it("keeps a macOS-style close dot at the upper left", () => {
+    renderSettingsPanel();
+
+    expect(container?.querySelector('button[aria-label="关闭设置"]')).not.toBeNull();
   });
 });

@@ -1,15 +1,30 @@
-import type { MouseEvent, SyntheticEvent } from "react";
+import { useEffect, useRef } from "react";
+import type { KeyboardEvent, MouseEvent, SyntheticEvent } from "react";
+import {
+  enterCustomCountdownDigit,
+  eraseCustomCountdownDigit,
+  getCustomCountdownSeconds,
+  selectCustomCountdownSegment,
+} from "./customCountdown";
+import type { CustomCountdownDraft } from "./customCountdown";
 
 interface TimerBadgeProps {
   display: string;
   paused: boolean;
   onTogglePause: () => void;
   onCancel: () => void;
+  mode?: "running" | "editing";
+  draft?: CustomCountdownDraft;
+  onDraftChange?: (draft: CustomCountdownDraft) => void;
+  onStart?: (seconds: number) => void;
 }
 
-// Keep the badge buttons from reaching the pet interaction layer underneath,
-// otherwise pausing would also count as clicking/dragging the pet.
 function preventPetInteraction(event: SyntheticEvent) {
+  event.stopPropagation();
+}
+
+function preventPetContextMenu(event: SyntheticEvent) {
+  event.preventDefault();
   event.stopPropagation();
 }
 
@@ -58,8 +73,118 @@ export function TimerBadge({
   paused,
   onTogglePause,
   onCancel,
+  mode = "running",
+  draft,
+  onDraftChange,
+  onStart,
 }: TimerBadgeProps) {
+  const composerRef = useRef<HTMLDivElement>(null);
   const pauseLabel = paused ? "继续计时" : "暂停计时";
+  const editing = mode === "editing" && draft && onDraftChange && onStart;
+  const draftSeconds = editing ? getCustomCountdownSeconds(draft) : null;
+
+  useEffect(() => {
+    if (editing) {
+      composerRef.current?.focus();
+    }
+  }, [editing]);
+
+  const updateDraft = (nextDraft: CustomCountdownDraft) => {
+    onDraftChange?.(nextDraft);
+  };
+
+  const handleEditorKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!editing || !draft) {
+      return;
+    }
+
+    preventPetInteraction(event);
+
+    if (/^\d$/.test(event.key)) {
+      event.preventDefault();
+      updateDraft(enterCustomCountdownDigit(draft, event.key));
+      return;
+    }
+
+    if (event.key === "Backspace") {
+      event.preventDefault();
+      updateDraft(eraseCustomCountdownDigit(draft));
+      return;
+    }
+
+    if (event.key === "Enter" && draftSeconds !== null) {
+      event.preventDefault();
+      onStart?.(draftSeconds);
+    }
+  };
+
+  if (editing && draft) {
+    return (
+      <div
+        ref={composerRef}
+        className="timer-badge timer-badge--editing"
+        tabIndex={0}
+        aria-label="自定义倒计时输入"
+        onPointerDown={preventPetInteraction}
+        onDoubleClick={preventPetInteraction}
+        onContextMenu={preventPetContextMenu}
+        onKeyDown={handleEditorKeyDown}
+      >
+        <button
+          type="button"
+          className={`timer-badge__time-group${draft.cursor < 2 ? " timer-badge__time-group--active" : ""}`}
+          aria-label="输入分钟"
+          onPointerDown={preventPetInteraction}
+          onDoubleClick={preventPetInteraction}
+          onClick={runBadgeAction(() =>
+            updateDraft(selectCustomCountdownSegment(draft, "minutes")),
+          )}
+        >
+          {draft.digits[0]}{draft.digits[1]}
+        </button>
+        <span className="timer-badge__separator" aria-hidden="true">:</span>
+        <button
+          type="button"
+          className={`timer-badge__time-group${draft.cursor >= 2 ? " timer-badge__time-group--active" : ""}`}
+          aria-label="输入秒钟"
+          onPointerDown={preventPetInteraction}
+          onDoubleClick={preventPetInteraction}
+          onClick={runBadgeAction(() =>
+            updateDraft(selectCustomCountdownSegment(draft, "seconds")),
+          )}
+        >
+          {draft.digits[2]}{draft.digits[3]}
+        </button>
+        <button
+          type="button"
+          className="timer-badge__button"
+          aria-label="开始自定义倒计时"
+          title="开始倒计时"
+          disabled={draftSeconds === null}
+          onPointerDown={preventPetInteraction}
+          onDoubleClick={preventPetInteraction}
+          onClick={runBadgeAction(() => {
+            if (draftSeconds !== null) {
+              onStart?.(draftSeconds);
+            }
+          })}
+        >
+          <PlayIcon />
+        </button>
+        <button
+          type="button"
+          className="timer-badge__button"
+          aria-label="取消自定义倒计时"
+          title="取消"
+          onPointerDown={preventPetInteraction}
+          onDoubleClick={preventPetInteraction}
+          onClick={runBadgeAction(onCancel)}
+        >
+          <CancelIcon />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div

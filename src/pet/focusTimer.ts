@@ -44,10 +44,22 @@ export function startCountdown(
 ): FocusTimerState {
   const safeMinutes = Math.min(180, Math.max(1, Math.round(durationMinutes)));
 
+  return startCountdownSeconds(now, safeMinutes * 60);
+}
+
+export function startCountdownSeconds(
+  now: number,
+  durationSeconds: number,
+): FocusTimerState {
+  const safeSeconds = Math.min(
+    180 * 60,
+    Math.max(1, Math.round(durationSeconds)),
+  );
+
   return {
     mode: "countdown",
     startedAt: now,
-    durationSeconds: safeMinutes * 60,
+    durationSeconds: safeSeconds,
     pausedAt: null,
     pausedTotalMs: 0,
   };

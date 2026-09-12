@@ -12,7 +12,7 @@ export type PetEvent =
   | { type: "cycle-state" }
   | { type: "clear-bubble"; interactionAt: number }
   | { type: "return-previous" }
-  | { type: "countdown-complete"; bubble: string };
+  | { type: "countdown-complete"; bubble: string | null };
 
 export interface PetViewModel {
   state: PetState;

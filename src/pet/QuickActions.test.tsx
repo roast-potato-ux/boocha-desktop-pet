@@ -90,7 +90,8 @@ describe("QuickActions", () => {
       "开始 5 分钟倒计时",
       "开始 15 分钟倒计时",
       "开始 30 分钟倒计时",
-      "使用自定义时长开始倒计时",
+      "输入自定义倒计时",
     ]);
+    expect(container.querySelector<HTMLButtonElement>('button[aria-label="输入自定义倒计时"]')?.textContent).toBe("....");
   });
 });

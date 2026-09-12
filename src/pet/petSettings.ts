@@ -20,7 +20,6 @@ export interface PetSettings {
   };
   bubbles: PetBubbleSettings;
   timer: {
-    customCountdownMinutes: number;
     countdownCompleteLines: string[];
   };
 }
@@ -53,7 +52,6 @@ export function createDefaultPetSettings(): PetSettings {
       workStart: ["开始认真搬砖"],
     },
     timer: {
-      customCountdownMinutes: 25,
       countdownCompleteLines: ["时间到，休息一下"],
     },
   };
@@ -86,7 +84,10 @@ function normalizeLines(value: unknown, fallback: string[]): string[] {
     .map((line) => line.trim())
     .filter(Boolean);
 
-  return lines.length > 0 ? lines : fallback;
+  // An explicit empty array means the user removed every tag. A non-empty
+  // payload that becomes empty only after validation is malformed, so retain
+  // the safe defaults for it instead.
+  return value.length === 0 || lines.length > 0 ? lines : fallback;
 }
 
 export function normalizePetSettings(input: unknown): PetSettings {
@@ -145,12 +146,6 @@ export function normalizePetSettings(input: unknown): PetSettings {
       workStart: normalizeLines(bubbles.workStart, defaults.bubbles.workStart),
     },
     timer: {
-      customCountdownMinutes: clamp(
-        timer.customCountdownMinutes,
-        1,
-        180,
-        defaults.timer.customCountdownMinutes,
-      ),
       countdownCompleteLines: normalizeLines(
         timer.countdownCompleteLines,
         defaults.timer.countdownCompleteLines,

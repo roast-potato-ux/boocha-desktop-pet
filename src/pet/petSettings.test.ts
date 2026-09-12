@@ -38,7 +38,6 @@ describe("petSettings", () => {
 
     expect(settings).toMatchObject({
       timer: {
-        customCountdownMinutes: 25,
         countdownCompleteLines: ["时间到，休息一下"],
       },
     });
@@ -89,7 +88,6 @@ describe("petSettings", () => {
         lunch: ["开饭"],
       },
       timer: {
-        customCountdownMinutes: 999,
         countdownCompleteLines: ["  完成啦  "],
       },
     });
@@ -105,7 +103,6 @@ describe("petSettings", () => {
     );
     expect(settings.bubbles.lunch).toEqual(["开饭"]);
     expect(settings.timer).toEqual({
-      customCountdownMinutes: 180,
       countdownCompleteLines: ["完成啦"],
     });
   });

@@ -8,6 +8,7 @@ import {
   pauseFocusTimer,
   resumeFocusTimer,
   startCountdown,
+  startCountdownSeconds,
   startStopwatch,
   stopFocusTimer,
 } from "./focusTimer";
@@ -35,6 +36,14 @@ describe("focusTimer", () => {
 
     expect(result.display).toBe("04:00");
     expect(result.completed).toBe(false);
+    expect(result.state.mode).toBe("countdown");
+  });
+
+  it("starts a countdown with an exact second duration", () => {
+    const timer = startCountdownSeconds(1_000, 25 * 60 + 30);
+    const result = evaluateFocusTimer(31_000, timer);
+
+    expect(result.display).toBe("25:00");
     expect(result.state.mode).toBe("countdown");
   });
 

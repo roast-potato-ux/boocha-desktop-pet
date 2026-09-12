@@ -127,12 +127,12 @@ export function QuickActions({
         <button
           type="button"
           className="quick-action quick-action--fan-bottom"
-          aria-label="使用自定义时长开始倒计时"
+          aria-label="输入自定义倒计时"
           onPointerDown={preventPetInteraction}
           onDoubleClick={preventPetInteraction}
           onClick={runQuickAction(onStartCustomCountdown)}
         >
-          自
+          ....
         </button>
       </div>
     );

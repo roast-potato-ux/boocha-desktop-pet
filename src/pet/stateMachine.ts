@@ -16,7 +16,11 @@ const defaultBubbles: PetBubbleSettings = {
   workStart: ["开始认真搬砖"],
 };
 
-function pickLine(lines: string[], seed: number): string {
+function pickLine(lines: string[], seed: number): string | null {
+  if (lines.length === 0) {
+    return null;
+  }
+
   return lines[Math.abs(seed) % lines.length];
 }
 
