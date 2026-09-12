@@ -1,6 +1,6 @@
-import boochEat from "../assets/booch-eat.mov";
-import boochIdle from "../assets/booch-idle.mov";
-import boochWork from "../assets/booch-work.mov";
+import boochaEat from "../assets/boocha-eat.mov";
+import boochaIdle from "../assets/boocha-idle.mov";
+import boochaWork from "../assets/boocha-work.mov";
 import { KeyedVideo } from "./KeyedVideo";
 import type { PetViewModel } from "./types";
 import { startPetDrag } from "./windowControls";
@@ -13,9 +13,9 @@ interface PetSpriteProps {
 
 export function PetSprite({ pet, onClick, onToggleWork }: PetSpriteProps) {
   const videoSrc = {
-    idle: boochIdle,
-    work: boochWork,
-    eat: boochEat,
+    idle: boochaIdle,
+    work: boochaWork,
+    eat: boochaEat,
   }[pet.state];
 
   return (

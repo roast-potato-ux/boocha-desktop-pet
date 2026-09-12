@@ -24,16 +24,37 @@ body,
 
 .pet-anchor {
   position: absolute;
-  width: 188px;
-  height: 220px;
+  width: 288px;
+  height: 240px;
   touch-action: none;
+  /* Center the scale frame inside the anchor in every mode. Without this the
+     frame's flex-shrink (default 1) squashes it to the anchor's size before
+     transform: scale() runs — at scale < 100% the absolute-positioned quick
+     actions (placed for the 288px grid) then overflow the right edge. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* The scale frame is 188px wide, 240px tall: a 52px transparent headroom band
-   on top for the speech bubble plus the 188px pet block below. The pet is
-   anchored to the bottom so the bubble floats just above its head without
-   covering it. Must match petWindowBaseHeight (220 -> 240) in nativeWindowClient. */
+/* The scale frame is 288x240: a 188px pet column on the left (52px transparent
+   headroom band on top for the bubble, plus the 188px pet block below) and a
+   100px band on the right where the quick-action buttons arc around the pet.
+   The pet column keeps the bubble/badge centered over the pet itself, not over
+   the wider frame. Must match petWindowBaseWidth/Height in nativeWindowClient. */
 .pet-scale-frame {
+  position: relative;
+  /* Keep the 288x240 design grid intact: never let the flex anchor squash it,
+     transform: scale() alone handles the visual size at any pet scale. */
+  flex: 0 0 auto;
+  transform-origin: center center;
+  width: 288px;
+  height: 240px;
+}
+
+.pet-column {
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 188px;
   height: 240px;
   display: flex;
@@ -390,25 +411,59 @@ body,
   color: #fff !important;
 }
 
+/* A frozen clock reads differently from a running one, so dim it slightly. */
 .timer-badge {
   position: absolute;
   top: 0;
   left: 50%;
   z-index: 3;
-  min-width: 70px;
-  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 13px;
   border: 1px solid rgb(255 255 255 / 65%);
-  border-radius: 13px;
+  border-radius: 999px;
   background: rgb(255 255 255 / 72%);
   -webkit-backdrop-filter: blur(14px) saturate(1.6);
   backdrop-filter: blur(14px) saturate(1.6);
   box-shadow: 0 3px 10px rgb(60 47 30 / 12%);
   color: #26221c;
+  transform: translate(-50%, 10px);
+}
+
+.timer-badge--paused .timer-badge__time {
+  color: #8a8175;
+}
+
+.timer-badge__time {
+  min-width: 46px;
   font-size: 14px;
   font-variant-numeric: tabular-nums;
   line-height: 1.3;
   text-align: center;
-  transform: translate(-50%, 10px);
+}
+
+.timer-badge__button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 7%);
+  color: #26221c;
+  cursor: pointer;
+}
+
+.timer-badge__button:hover {
+  background: rgb(0 0 0 / 13%);
+}
+
+.timer-badge__icon {
+  display: block;
+  width: 13px;
+  height: 13px;
 }
 
 .quick-actions {
@@ -418,10 +473,15 @@ body,
   pointer-events: none;
 }
 
+/* All quick-action buttons live in the band to the right of the 188px pet
+   column and arc gently outward, so the pet is never covered. */
 .quick-action {
   position: absolute;
-  width: 42px;
-  height: 42px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: 1px solid rgb(255 255 255 / 62%);
   border-radius: 999px;
   background: rgb(255 255 255 / 68%);
@@ -430,27 +490,57 @@ body,
   box-shadow: 0 4px 14px rgb(60 47 30 / 14%);
   color: #25211d;
   cursor: pointer;
-  font-size: 17px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
   pointer-events: auto;
 }
 
-.quick-action--top {
-  left: 50%;
-  top: 4px;
-  transform: translateX(-50%);
+.quick-action:hover {
+  background: rgb(255 255 255 / 86%);
 }
 
-.quick-action--upper-right {
-  right: 6px;
-  top: 52px;
+/* One shared size for every icon so the glyphs stay optically identical and
+   fill most of the round button. */
+.quick-action__icon {
+  display: block;
+  width: 23px;
+  height: 23px;
 }
 
-.quick-action--right {
-  right: -4px;
-  top: 104px;
+/* Main menu: 倒计时 / 计时器 / 设置 arc down the pet's right side. */
+.quick-action--arc-top {
+  left: 200px;
+  top: 74px;
 }
 
-.quick-action--lower-right {
-  right: 18px;
-  bottom: 22px;
+.quick-action--arc-mid {
+  left: 220px;
+  top: 122px;
+}
+
+.quick-action--arc-bottom {
+  left: 200px;
+  top: 170px;
+}
+
+/* Countdown choices: the same arc, holding four buttons. */
+.quick-action--fan-top {
+  left: 196px;
+  top: 58px;
+}
+
+.quick-action--fan-upper {
+  left: 220px;
+  top: 102px;
+}
+
+.quick-action--fan-lower {
+  left: 220px;
+  top: 146px;
+}
+
+.quick-action--fan-bottom {
+  left: 196px;
+  top: 190px;
 }

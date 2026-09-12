@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getBoochVideoCropRect } from "./videoCrop";
+import { getBoochaVideoCropRect } from "./videoCrop";
 
-describe("getBoochVideoCropRect", () => {
-  it("removes the bottom recording artifact from a Booch source frame", () => {
-    expect(getBoochVideoCropRect(480, 370)).toEqual({
+describe("getBoochaVideoCropRect", () => {
+  it("removes the bottom recording artifact from a Boocha source frame", () => {
+    expect(getBoochaVideoCropRect(480, 370)).toEqual({
       sourceX: 0,
       sourceY: 0,
       sourceWidth: 480,
@@ -12,7 +12,7 @@ describe("getBoochVideoCropRect", () => {
   });
 
   it("keeps at least one source row for tiny frames", () => {
-    expect(getBoochVideoCropRect(2, 2)).toEqual({
+    expect(getBoochaVideoCropRect(2, 2)).toEqual({
       sourceX: 0,
       sourceY: 0,
       sourceWidth: 2,

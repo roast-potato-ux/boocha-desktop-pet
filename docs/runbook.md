@@ -1,4 +1,4 @@
-# Booch Desktop Pet Runbook
+# Boocha Desktop Pet Runbook
 
 ## Run Frontend Preview
 
@@ -11,7 +11,7 @@ Open `http://127.0.0.1:1420/`.
 ## Expected Preview Behavior
 
 - The pet uses the user's local videos for idle, work, and eat states.
-- The video background is removed in the app: the outside background is transparent, while Booch's own light body fill is preserved.
+- The video background is removed in the app: the outside background is transparent, while Boocha's own light body fill is preserved.
 - Click the pet to show a short bubble.
 - While idle, the pet occasionally shows a short ambient bubble on its own without switching out of idle mode.
 - Double-click the pet to cycle through idle, work, eat, then back to idle.
@@ -29,7 +29,7 @@ Open `http://127.0.0.1:1420/`.
 npm run tauri:dev
 ```
 
-The macOS desktop version runs as a transparent, always-on-top, draggable Booch window.
+The macOS desktop version runs as a transparent, always-on-top, draggable Boocha window.
 
 ## Current Environment Check
 

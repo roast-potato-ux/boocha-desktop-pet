@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Default desktop permissions for Booch pet",
+  "description": "Default desktop permissions for Boocha pet",
   "windows": ["main"],
   "permissions": [
     "core:default",

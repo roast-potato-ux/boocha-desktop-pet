@@ -26,7 +26,7 @@ export const petFrame = {
 };
 
 const margin = 24;
-const storageKey = "booch.pet.position";
+const storageKey = "boocha.pet.position";
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);

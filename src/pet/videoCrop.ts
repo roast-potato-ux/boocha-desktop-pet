@@ -7,7 +7,7 @@ export interface VideoCropRect {
 
 const bottomRecordingArtifactRatio = 0.04;
 
-export function getBoochVideoCropRect(
+export function getBoochaVideoCropRect(
   videoWidth: number,
   videoHeight: number,
 ): VideoCropRect {

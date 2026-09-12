@@ -1,12 +1,12 @@
 [package]
-name = "booch-desktop-pet"
+name = "boocha-desktop-pet"
 version = "0.1.0"
 description = "A playful desktop pet for macOS"
 authors = ["bytedance"]
 edition = "2021"
 
 [lib]
-name = "booch_desktop_pet_lib"
+name = "boocha_desktop_pet_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

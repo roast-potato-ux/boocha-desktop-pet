@@ -63,7 +63,7 @@ describe("petPlacement", () => {
 
   it("ignores invalid stored positions", () => {
     const storage = new MemoryStorage();
-    storage.setItem("booch.pet.position", "{\"left\":\"x\",\"top\":99}");
+    storage.setItem("boocha.pet.position", "{\"left\":\"x\",\"top\":99}");
 
     expect(loadPetPosition(storage)).toBeNull();
   });

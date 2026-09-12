@@ -50,7 +50,7 @@ describe("petSettings", () => {
   it("loads saved settings while filling missing fields from defaults", () => {
     const storage = new MemoryStorage();
     storage.setItem(
-      "booch.pet.settings.v1",
+      "boocha.pet.settings.v1",
       JSON.stringify({
         scale: 1.2,
         meals: { lunch: "11:45" },
@@ -68,7 +68,7 @@ describe("petSettings", () => {
 
   it("falls back to defaults when saved settings are not readable", () => {
     const storage = new MemoryStorage();
-    storage.setItem("booch.pet.settings.v1", "{");
+    storage.setItem("boocha.pet.settings.v1", "{");
 
     expect(loadPetSettings(storage)).toEqual(createDefaultPetSettings());
   });
@@ -118,7 +118,7 @@ describe("petSettings", () => {
       scale: 0.2,
     });
 
-    expect(JSON.parse(storage.getItem("booch.pet.settings.v1") ?? "{}").scale).toBe(
+    expect(JSON.parse(storage.getItem("boocha.pet.settings.v1") ?? "{}").scale).toBe(
       0.6,
     );
   });

@@ -52,11 +52,11 @@ export function SettingsPanel({
   };
 
   return (
-    <section className="settings-panel" aria-label="Booch 设置面板">
+    <section className="settings-panel" aria-label="Boocha 设置面板">
       <header className="settings-panel__header" data-tauri-drag-region>
         <div data-tauri-drag-region>
           <p className="settings-panel__eyebrow" data-tauri-drag-region>
-            Booch Desktop Pet
+            Boocha Desktop Pet
           </p>
           <h1 data-tauri-drag-region>设置</h1>
         </div>

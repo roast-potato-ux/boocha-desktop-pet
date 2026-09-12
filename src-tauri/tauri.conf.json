@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Booch Desktop Pet",
+  "productName": "Boocha Desktop Pet",
   "version": "0.1.0",
-  "identifier": "com.cai.boochpet",
+  "identifier": "com.cai.boochapet",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://127.0.0.1:1420",
@@ -14,9 +14,9 @@
     "windows": [
       {
         "label": "main",
-        "title": "Booch",
-        "width": 220,
-        "height": 220,
+        "title": "Boocha",
+        "width": 288,
+        "height": 240,
         "decorations": false,
         "transparent": true,
         "resizable": false,

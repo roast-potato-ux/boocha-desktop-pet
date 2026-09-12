@@ -1,3 +1,3 @@
 fn main() {
-    booch_desktop_pet_lib::run();
+    boocha_desktop_pet_lib::run();
 }

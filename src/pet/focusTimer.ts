@@ -8,6 +8,10 @@ export interface ActiveFocusTimerState {
   mode: FocusTimerMode;
   startedAt: number;
   durationSeconds: number | null;
+  /** Timestamp the timer was paused at, or null while it is running. */
+  pausedAt: number | null;
+  /** Total time already spent paused, excluded from the elapsed time. */
+  pausedTotalMs: number;
 }
 
 export type FocusTimerState =
@@ -29,6 +33,8 @@ export function startStopwatch(now: number): FocusTimerState {
     mode: "stopwatch",
     startedAt: now,
     durationSeconds: null,
+    pausedAt: null,
+    pausedTotalMs: 0,
   };
 }
 
@@ -42,11 +48,47 @@ export function startCountdown(
     mode: "countdown",
     startedAt: now,
     durationSeconds: safeMinutes * 60,
+    pausedAt: null,
+    pausedTotalMs: 0,
   };
 }
 
 export function stopFocusTimer(): FocusTimerState {
   return createInactiveFocusTimer();
+}
+
+export function isFocusTimerPaused(state: FocusTimerState): boolean {
+  return state.mode !== null && state.pausedAt !== null;
+}
+
+export function isFocusTimerActive(state: FocusTimerState): boolean {
+  return state.mode !== null;
+}
+
+export function pauseFocusTimer(
+  now: number,
+  state: FocusTimerState,
+): FocusTimerState {
+  if (state.mode === null || state.pausedAt !== null) {
+    return state;
+  }
+
+  return { ...state, pausedAt: now };
+}
+
+export function resumeFocusTimer(
+  now: number,
+  state: FocusTimerState,
+): FocusTimerState {
+  if (state.mode === null || state.pausedAt === null) {
+    return state;
+  }
+
+  return {
+    ...state,
+    pausedAt: null,
+    pausedTotalMs: state.pausedTotalMs + Math.max(0, now - state.pausedAt),
+  };
 }
 
 export function formatTimerSeconds(totalSeconds: number): string {
@@ -69,7 +111,13 @@ export function evaluateFocusTimer(
     };
   }
 
-  const elapsedSeconds = Math.max(0, Math.floor((now - state.startedAt) / 1000));
+  // While paused the clock is frozen: keep measuring against the pause instant
+  // and ignore time spent paused, so the display stops ticking.
+  const referenceNow = state.pausedAt ?? now;
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((referenceNow - state.startedAt - state.pausedTotalMs) / 1000),
+  );
 
   if (state.mode === "stopwatch") {
     return {
@@ -83,7 +131,8 @@ export function evaluateFocusTimer(
     0,
     (state.durationSeconds ?? 0) - elapsedSeconds,
   );
-  const completed = remainingSeconds === 0;
+  // A paused timer never completes: the user stopped the clock on purpose.
+  const completed = remainingSeconds === 0 && state.pausedAt === null;
 
   return {
     state: completed ? createInactiveFocusTimer() : state,

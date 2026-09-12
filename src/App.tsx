@@ -34,6 +34,9 @@ import type { PetSettings } from "./pet/petSettings";
 import {
   createInactiveFocusTimer,
   evaluateFocusTimer,
+  isFocusTimerPaused,
+  pauseFocusTimer,
+  resumeFocusTimer,
   startCountdown,
   startStopwatch,
   stopFocusTimer,
@@ -116,6 +119,7 @@ export default function App() {
   }, [settingsBeforePreview]);
 
   const focusTimerActive = focusTimer.mode !== null;
+  const focusTimerPaused = isFocusTimerPaused(focusTimer);
   const visiblePet = focusTimerActive
     ? { ...pet, state: "work" as const, bubble: null }
     : pet;
@@ -145,6 +149,23 @@ export default function App() {
     setTimerDisplay(null);
     dispatchPet({ type: "select-state", state: "work" });
     closeQuickActions();
+  };
+
+  // Pause freezes the clock but keeps the pet in its focus pose; resuming
+  // subtracts the paused stretch from the elapsed time.
+  const toggleFocusTimerPause = () => {
+    const now = Date.now();
+    setFocusTimer((current) =>
+      isFocusTimerPaused(current)
+        ? resumeFocusTimer(now, current)
+        : pauseFocusTimer(now, current),
+    );
+  };
+
+  const cancelFocusTimer = () => {
+    setFocusTimer(stopFocusTimer());
+    setTimerDisplay(null);
+    dispatchPet({ type: "select-state", state: "idle" });
   };
 
   useEffect(() => {
@@ -248,13 +269,21 @@ export default function App() {
     };
   }, [dispatchPet, pet.state, settings.durations.eatSeconds]);
 
+  // Only react to the panel opening/closing here. Re-applying the panel effects
+  // on every live-preview tweak used to pile up native vibrancy views, which
+  // then survived closing the panel as a stuck glass background.
   useEffect(() => {
     if (settingsOpen) {
       void resizeWindowForSettingsPanel();
-      return;
     }
+  }, [settingsOpen]);
 
-    void resizeWindowForPet(settings.scale);
+  // While the panel is open the window stays at panel size, so only resize for
+  // the pet when it is closed (also covers closing the panel and scale changes).
+  useEffect(() => {
+    if (!settingsOpen) {
+      void resizeWindowForPet(settings.scale);
+    }
   }, [settings.scale, settingsOpen]);
 
   useEffect(() => {
@@ -294,7 +323,7 @@ export default function App() {
   return (
     <main
       className={`pet-stage${settingsOpen ? " pet-stage--settings" : ""}`}
-      aria-label="Booch desktop pet"
+      aria-label="Boocha desktop pet"
     >
       {settingsOpen ? (
         <SettingsPanel
@@ -315,7 +344,7 @@ export default function App() {
             ? {
                 left: 0,
                 top: 0,
-                width: 188 * settings.scale,
+                width: 288 * settings.scale,
                 height: 240 * settings.scale,
               }
             : isNativePetWindowAvailable()
@@ -328,7 +357,7 @@ export default function App() {
             : {
                 left: position.left,
                 top: position.top,
-                width: 188 * settings.scale,
+                width: 288 * settings.scale,
                 height: 240 * settings.scale,
               }
         }
@@ -384,10 +413,32 @@ export default function App() {
             transform: `scale(${settings.scale})`,
           }}
         >
-          {focusTimerActive && timerDisplay ? (
-            <TimerBadge display={timerDisplay} />
-          ) : null}
-          {!focusTimerActive && pet.bubble ? <Bubble text={pet.bubble} /> : null}
+          {/* The pet column is 188px wide and sits at the left of the wider
+              frame; the spare band on the right is where the quick actions arc. */}
+          <div className="pet-column">
+            {focusTimerActive && timerDisplay ? (
+              <TimerBadge
+                display={timerDisplay}
+                paused={focusTimerPaused}
+                onTogglePause={toggleFocusTimerPause}
+                onCancel={cancelFocusTimer}
+              />
+            ) : null}
+            {!focusTimerActive && pet.bubble ? <Bubble text={pet.bubble} /> : null}
+            <PetSprite
+              pet={visiblePet}
+              onClick={() => {
+                if (!focusTimerActive) {
+                  dispatchPet({ type: "pet-click" });
+                }
+              }}
+              onToggleWork={() => {
+                if (!focusTimerActive) {
+                  dispatchPet({ type: "cycle-state" });
+                }
+              }}
+            />
+          </div>
           {quickActionsOpen ? (
             <QuickActions
               mode={quickActionMode}
@@ -403,19 +454,6 @@ export default function App() {
               }}
             />
           ) : null}
-          <PetSprite
-            pet={visiblePet}
-            onClick={() => {
-              if (!focusTimerActive) {
-                dispatchPet({ type: "pet-click" });
-              }
-            }}
-            onToggleWork={() => {
-              if (!focusTimerActive) {
-                dispatchPet({ type: "cycle-state" });
-              }
-            }}
-          />
         </div>
       </div>
     </main>

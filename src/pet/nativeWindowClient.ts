@@ -5,7 +5,11 @@ import {
   PhysicalPosition,
 } from "@tauri-apps/api/window";
 
-const petWindowBaseWidth = 220;
+// The pet block (pet-shell) is 188px wide/tall; the window is wider than the pet
+// so the quick-action buttons can arc along its right side without covering it.
+// `.pet-column` (188px) sits at the left edge of the frame, the remaining
+// 100px band holds the buttons. Must match .pet-scale-frame / .pet-anchor.
+const petWindowBaseWidth = 288;
 // The pet block (pet-shell) is 188px tall; on top of it we reserve a transparent
 // headroom band (bubbleHeadroom = 52px) for the speech bubble so it floats above
 // the pet's head without covering it. Must match .pet-scale-frame height.
@@ -58,8 +62,14 @@ export async function resizeWindowForPet(scale: number): Promise<void> {
 export async function resizeWindowForSettingsPanel(): Promise<void> {
   try {
     const window = getCurrentWindow();
-    const position = await window.outerPosition();
-    petWindowPosition = { x: position.x, y: position.y };
+
+    // Only remember the pet's spot the first time we expand: a second call while
+    // the panel is already open would otherwise save the *centered* panel
+    // position and strand the pet in the middle of the screen on close.
+    if (!petWindowPosition) {
+      const position = await window.outerPosition();
+      petWindowPosition = { x: position.x, y: position.y };
+    }
 
     await window.setSize(
       new LogicalSize(settingsWindowWidth, settingsWindowHeight),

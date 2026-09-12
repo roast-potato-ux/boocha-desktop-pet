@@ -30,7 +30,7 @@ interface PetSettingsStorage {
   setItem(key: string, value: string): void;
 }
 
-export const petSettingsStorageKey = "booch.pet.settings.v1";
+export const petSettingsStorageKey = "boocha.pet.settings.v1";
 
 export function createDefaultPetSettings(): PetSettings {
   return {
