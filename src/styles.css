@@ -326,20 +326,6 @@ body,
   accent-color: #007aff;
 }
 
-.settings-panel__section input[type="checkbox"] {
-  accent-color: #007aff;
-}
-
-.settings-panel__check {
-  display: flex;
-  flex-direction: row !important;
-  align-items: center;
-  gap: 8px !important;
-  font-size: 13px;
-  color: #6e6e73;
-  cursor: pointer;
-}
-
 .settings-panel__segmented {
   display: flex;
   gap: 6px;
@@ -368,20 +354,6 @@ body,
   color: #1c1c1e;
   font-weight: 600;
   box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
-}
-
-.settings-panel__inline {
-  display: flex;
-  gap: 10px;
-}
-
-.settings-panel__inline > label {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-  color: #6e6e73;
 }
 
 .settings-panel__footer {

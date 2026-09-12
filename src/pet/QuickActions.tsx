@@ -18,16 +18,36 @@ export function QuickActions({
   if (mode === "countdown") {
     return (
       <div className="quick-actions quick-actions--countdown" aria-label="倒计时选项">
-        <button type="button" className="quick-action quick-action--top" onClick={() => onStartCountdown(5)}>
+        <button
+          type="button"
+          className="quick-action quick-action--top"
+          aria-label="开始 5 分钟倒计时"
+          onClick={() => onStartCountdown(5)}
+        >
           5
         </button>
-        <button type="button" className="quick-action quick-action--upper-right" onClick={() => onStartCountdown(15)}>
+        <button
+          type="button"
+          className="quick-action quick-action--upper-right"
+          aria-label="开始 15 分钟倒计时"
+          onClick={() => onStartCountdown(15)}
+        >
           15
         </button>
-        <button type="button" className="quick-action quick-action--right" onClick={() => onStartCountdown(30)}>
+        <button
+          type="button"
+          className="quick-action quick-action--right"
+          aria-label="开始 30 分钟倒计时"
+          onClick={() => onStartCountdown(30)}
+        >
           30
         </button>
-        <button type="button" className="quick-action quick-action--lower-right" onClick={onStartCustomCountdown}>
+        <button
+          type="button"
+          className="quick-action quick-action--lower-right"
+          aria-label="使用自定义时长开始倒计时"
+          onClick={onStartCustomCountdown}
+        >
           自
         </button>
       </div>

@@ -7,6 +7,7 @@ import type { PetViewModel } from "./types";
 
 const idlePet: PetViewModel = {
   state: "idle",
+  previousState: null,
   bubble: null,
   lastInteractionAt: 0,
 };
