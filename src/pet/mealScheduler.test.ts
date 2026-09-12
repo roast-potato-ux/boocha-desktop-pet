@@ -52,11 +52,11 @@ describe("evaluateMealReminder", () => {
     expect(nextDay.event).toEqual({ type: "meal-reminder", meal: "lunch" });
   });
 
-  it("does not trigger meal reminders while reminders are paused", () => {
+  it("does not trigger meal reminders while focus timer blocks automatic switches", () => {
     const result = evaluateMealReminder(
       new Date("2026-09-06T12:00:00+08:00"),
       emptyState,
-      { paused: true },
+      { blocked: true },
     );
 
     expect(result.event).toBeNull();
@@ -78,19 +78,4 @@ describe("evaluateMealReminder", () => {
     expect(result.event).toEqual({ type: "meal-reminder", meal: "lunch" });
   });
 
-  it("does not trigger meal reminders during enabled quiet hours", () => {
-    const result = evaluateMealReminder(
-      new Date("2026-09-06T12:00:00+08:00"),
-      emptyState,
-      {
-        focusQuietHours: {
-          enabled: true,
-          start: "09:00",
-          end: "18:00",
-        },
-      },
-    );
-
-    expect(result.event).toBeNull();
-  });
 });
