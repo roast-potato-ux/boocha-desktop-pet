@@ -3,6 +3,7 @@ node_modules/
 dist/
 build/
 .vite/
+.worktrees/
 
 # Tauri / Rust build output
 src-tauri/target/
