@@ -1,5 +1,11 @@
 # Boocha Desktop Pet 交接文档
 
+> **最新交接请先读 [`docs/handshakes/2026-09-13-boocha-handoff.md`](handshakes/2026-09-13-boocha-handoff.md)。**
+> 本文档以下内容已过期（保留作历史参考）：
+> - 窗口基准尺寸现在是 **288×240**，设置面板窗口是 **720×700**；
+> - 设置存储键现在是 `boocha.pet.settings.v1`；
+> - 「当前稳定基线」一节停留在 `f254474`，最新提交见最新交接文档。
+
 更新时间：2026-09-06（设置面板阶段收尾）
 项目路径：`/Users/bytedance/Documents/AI Explore/booch-desktop-pet`
 
