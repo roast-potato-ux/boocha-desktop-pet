@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { normalizePetSettings } from "./petSettings";
 import type { PetSettings } from "./petSettings";
 
 interface SettingsPanelProps {
   settings: PetSettings;
   onSave: (settings: PetSettings) => void;
+  onPreviewSettings?: (settings: PetSettings) => void;
   onClose: () => void;
 }
 
@@ -19,11 +20,19 @@ function textToLines(text: string): string[] {
     .filter(Boolean);
 }
 
-export function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps) {
+export function SettingsPanel({
+  settings,
+  onSave,
+  onPreviewSettings,
+  onClose,
+}: SettingsPanelProps) {
   const [draft, setDraft] = useState(settings);
+  const originalSettings = useRef(settings);
 
   const updateDraft = (next: Partial<PetSettings>) => {
-    setDraft((current) => ({ ...current, ...next } as PetSettings));
+    const nextDraft = { ...draft, ...next } as PetSettings;
+    setDraft(nextDraft);
+    onPreviewSettings?.(nextDraft);
   };
 
   const updateDurations = (next: Partial<PetSettings["durations"]>) => {
@@ -270,7 +279,13 @@ export function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps)
       </div>
 
       <footer className="settings-panel__footer">
-        <button type="button" onClick={() => setDraft(settings)}>
+        <button
+          type="button"
+          onClick={() => {
+            setDraft(originalSettings.current);
+            onPreviewSettings?.(originalSettings.current);
+          }}
+        >
           恢复上次保存
         </button>
         <button

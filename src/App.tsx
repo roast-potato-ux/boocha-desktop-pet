@@ -63,6 +63,8 @@ export default function App() {
     loadPetSettings(window.localStorage),
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsBeforePreview, setSettingsBeforePreview] =
+    useState<PetSettings | null>(null);
   const [focusTimer, setFocusTimer] = useState<FocusTimerState>(() =>
     createInactiveFocusTimer(),
   );
@@ -95,6 +97,23 @@ export default function App() {
     const savedSettings = savePetSettings(window.localStorage, nextSettings);
     setSettings(savedSettings);
   };
+
+  const openSettings = useCallback(() => {
+    if (!settingsOpen) {
+      setSettingsBeforePreview(settings);
+    }
+
+    setSettingsOpen(true);
+  }, [settings, settingsOpen]);
+
+  const closeSettings = useCallback(() => {
+    if (settingsBeforePreview) {
+      setSettings(settingsBeforePreview);
+    }
+
+    setSettingsBeforePreview(null);
+    setSettingsOpen(false);
+  }, [settingsBeforePreview]);
 
   const focusTimerActive = focusTimer.mode !== null;
   const visiblePet = focusTimerActive
@@ -130,18 +149,16 @@ export default function App() {
 
   useEffect(() => {
     const tick = () => {
-      setFocusTimer((current) => {
-        const result = evaluateFocusTimer(Date.now(), current);
-        setTimerDisplay(result.display);
+      const result = evaluateFocusTimer(Date.now(), focusTimer);
+      setTimerDisplay(result.display);
 
-        if (result.completed) {
-          const line =
-            settings.timer.countdownCompleteLines[0] ?? "时间到，休息一下";
-          dispatchPet({ type: "countdown-complete", bubble: line });
-        }
+      if (result.completed) {
+        const line =
+          settings.timer.countdownCompleteLines[0] ?? "时间到，休息一下";
+        dispatchPet({ type: "countdown-complete", bubble: line });
+      }
 
-        return result.state;
-      });
+      setFocusTimer(result.state);
     };
 
     tick();
@@ -150,7 +167,7 @@ export default function App() {
     return () => {
       window.clearInterval(timer);
     };
-  }, [dispatchPet, settings.timer.countdownCompleteLines]);
+  }, [dispatchPet, focusTimer, settings.timer.countdownCompleteLines]);
 
   useEffect(() => {
     const tick = () => {
@@ -257,7 +274,7 @@ export default function App() {
     });
 
     void listenForSettingsPanelRequests(() => {
-      setSettingsOpen(true);
+      openSettings();
     }).then((nextUnlisten) => {
       if (cancelled) {
         nextUnlisten();
@@ -272,7 +289,7 @@ export default function App() {
       unlistenStateRequests?.();
       unlistenSettingsRequests?.();
     };
-  }, [dispatchPet]);
+  }, [dispatchPet, openSettings]);
 
   return (
     <main
@@ -284,9 +301,11 @@ export default function App() {
           settings={settings}
           onSave={(nextSettings) => {
             persistSettings(nextSettings);
+            setSettingsBeforePreview(null);
             setSettingsOpen(false);
           }}
-          onClose={() => setSettingsOpen(false)}
+          onPreviewSettings={setSettings}
+          onClose={closeSettings}
         />
       ) : null}
       <div
@@ -380,7 +399,7 @@ export default function App() {
               onToggleStopwatch={toggleStopwatch}
               onOpenSettings={() => {
                 closeQuickActions();
-                setSettingsOpen(true);
+                openSettings();
               }}
             />
           ) : null}
