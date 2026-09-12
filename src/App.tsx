@@ -33,6 +33,11 @@ import {
 import type { PetSettings } from "./pet/petSettings";
 import { createCustomCountdownDraft } from "./pet/customCountdown";
 import type { CustomCountdownDraft } from "./pet/customCountdown";
+import { readAutostart, setAutostart } from "./pet/autostartClient";
+import {
+  createAutostartOperationTracker,
+  synchronizeAutostartSettings,
+} from "./pet/autostartState";
 import {
   createInactiveFocusTimer,
   evaluateFocusTimer,
@@ -68,9 +73,14 @@ export default function App() {
   const [settings, setSettings] = useState(() =>
     loadPetSettings(window.localStorage),
   );
+  const settingsRef = useRef(settings);
+  const persistedSettingsRef = useRef(settings);
+  const autostartOperations = useRef(createAutostartOperationTracker());
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsBeforePreview, setSettingsBeforePreview] =
     useState<PetSettings | null>(null);
+  const [autostartLoading, setAutostartLoading] = useState(false);
+  const [autostartError, setAutostartError] = useState<string | null>(null);
   const [focusTimer, setFocusTimer] = useState<FocusTimerState>(() =>
     createInactiveFocusTimer(),
   );
@@ -101,10 +111,42 @@ export default function App() {
     [settings.bubbles],
   );
 
-  const persistSettings = (nextSettings: PetSettings) => {
+  const replaceSettings = useCallback((nextSettings: PetSettings) => {
+    settingsRef.current = nextSettings;
+    setSettings(nextSettings);
+  }, []);
+
+  const persistSettings = useCallback((nextSettings: PetSettings) => {
     const savedSettings = savePetSettings(window.localStorage, nextSettings);
-    setSettings(savedSettings);
-  };
+    persistedSettingsRef.current = savedSettings;
+    replaceSettings(savedSettings);
+  }, [replaceSettings]);
+
+  const mergeAutostartIntoLatestSettings = useCallback((launchAtLogin: boolean) => {
+    const synchronized = synchronizeAutostartSettings(
+      persistedSettingsRef.current,
+      settingsRef.current,
+      launchAtLogin,
+    );
+    const savedSettings = savePetSettings(
+      window.localStorage,
+      synchronized.persistedSettings,
+    );
+    persistedSettingsRef.current = savedSettings;
+    replaceSettings({
+      ...synchronized.displayedSettings,
+      startup: savedSettings.startup,
+    });
+    setSettingsBeforePreview((current) =>
+      current
+        ? synchronizeAutostartSettings(
+            current,
+            current,
+            launchAtLogin,
+          ).persistedSettings
+        : current,
+    );
+  }, [replaceSettings]);
 
   const openSettings = useCallback(() => {
     if (!settingsOpen) {
@@ -116,12 +158,72 @@ export default function App() {
 
   const closeSettings = useCallback(() => {
     if (settingsBeforePreview) {
-      setSettings(settingsBeforePreview);
+      replaceSettings(settingsBeforePreview);
     }
 
     setSettingsBeforePreview(null);
     setSettingsOpen(false);
-  }, [settingsBeforePreview]);
+  }, [replaceSettings, settingsBeforePreview]);
+
+  useEffect(() => {
+    if (!settingsOpen) {
+      return;
+    }
+
+    let cancelled = false;
+    const operation = autostartOperations.current.begin();
+    setAutostartLoading(true);
+    setAutostartError(null);
+
+    void readAutostart(
+      isNativePetWindowAvailable(),
+      settingsRef.current.startup.launchAtLogin,
+    )
+      .then((launchAtLogin) => {
+        if (cancelled || !autostartOperations.current.isCurrent(operation)) {
+          return;
+        }
+
+        mergeAutostartIntoLatestSettings(launchAtLogin);
+      })
+      .catch(() => {
+        if (!cancelled && autostartOperations.current.isCurrent(operation)) {
+          setAutostartError("无法读取开机自启动状态");
+        }
+      })
+      .finally(() => {
+        if (!cancelled && autostartOperations.current.isCurrent(operation)) {
+          setAutostartLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mergeAutostartIntoLatestSettings, settingsOpen]);
+
+  const changeAutostart = async (launchAtLogin: boolean) => {
+    const operation = autostartOperations.current.begin();
+    setAutostartLoading(true);
+    setAutostartError(null);
+
+    try {
+      await setAutostart(isNativePetWindowAvailable(), launchAtLogin);
+      if (!autostartOperations.current.isCurrent(operation)) {
+        return;
+      }
+
+      mergeAutostartIntoLatestSettings(launchAtLogin);
+    } catch {
+      if (autostartOperations.current.isCurrent(operation)) {
+        setAutostartError("无法更新开机自启动，请稍后重试");
+      }
+    } finally {
+      if (autostartOperations.current.isCurrent(operation)) {
+        setAutostartLoading(false);
+      }
+    }
+  };
 
   const focusTimerActive = focusTimer.mode !== null;
   const focusTimerPaused = isFocusTimerPaused(focusTimer);
@@ -354,8 +456,16 @@ export default function App() {
             setSettingsBeforePreview(null);
             setSettingsOpen(false);
           }}
-          onPreviewSettings={setSettings}
+          onPreviewSettings={replaceSettings}
           onClose={closeSettings}
+          autostart={{
+            enabled: settings.startup.launchAtLogin,
+            loading: autostartLoading,
+            error: autostartError,
+          }}
+          onAutostartChange={(enabled) => {
+            void changeAutostart(enabled);
+          }}
         />
       ) : null}
       <div

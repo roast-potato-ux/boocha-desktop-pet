@@ -380,6 +380,80 @@ body,
   accent-color: #007aff;
 }
 
+.settings-panel__toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #1c1c1e;
+  font-size: 13px;
+}
+
+.settings-panel__toggle-row > span {
+  display: grid;
+  gap: 4px;
+}
+
+.settings-panel__toggle-row strong {
+  font-weight: 600;
+}
+
+.settings-panel__toggle-row small,
+.settings-panel__hint {
+  color: #6e6e73;
+  font-size: 12px;
+}
+
+.settings-panel__toggle-row input[type="checkbox"] {
+  position: relative;
+  width: 42px;
+  height: 25px;
+  margin: 0;
+  flex: 0 0 auto;
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(120 120 128 / 28%);
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.settings-panel__toggle-row input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 22%);
+  transition: transform 160ms ease;
+}
+
+.settings-panel__toggle-row input[type="checkbox"]:checked {
+  background: #34c759;
+}
+
+.settings-panel__toggle-row input[type="checkbox"]:checked::after {
+  transform: translateX(17px);
+}
+
+.settings-panel__toggle-row input[type="checkbox"]:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.settings-panel__hint,
+.settings-panel__error {
+  margin: 0;
+}
+
+.settings-panel__error {
+  color: #c13b32;
+  font-size: 12px;
+}
+
 .settings-panel__segmented {
   display: flex;
   gap: 6px;

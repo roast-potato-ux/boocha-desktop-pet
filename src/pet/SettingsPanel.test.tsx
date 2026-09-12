@@ -9,7 +9,11 @@ import { SettingsPanel } from "./SettingsPanel";
 let container: HTMLDivElement | null = null;
 let root: Root | null = null;
 
-function renderSettingsPanel(onPreviewSettings = vi.fn()) {
+function renderSettingsPanel(
+  onPreviewSettings = vi.fn(),
+  onAutostartChange = vi.fn(),
+  autostart = { enabled: false, loading: false, error: null as string | null },
+) {
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
@@ -21,6 +25,8 @@ function renderSettingsPanel(onPreviewSettings = vi.fn()) {
         onSave={vi.fn()}
         onPreviewSettings={onPreviewSettings}
         onClose={vi.fn()}
+        autostart={autostart}
+        onAutostartChange={onAutostartChange}
       />,
     );
   });
@@ -95,5 +101,43 @@ describe("SettingsPanel", () => {
     renderSettingsPanel();
 
     expect(container?.querySelector('button[aria-label="关闭设置"]')).not.toBeNull();
+  });
+
+  it("offers a default-off launch-at-login switch", () => {
+    const onAutostartChange = vi.fn();
+    renderSettingsPanel(vi.fn(), onAutostartChange);
+
+    const toggle = container?.querySelector<HTMLInputElement>(
+      'input[aria-label="开机时启动 Boocha"]',
+    );
+
+    expect(container?.textContent).toContain("开机时启动 Boocha");
+    expect(toggle?.checked).toBe(false);
+
+    act(() => toggle?.click());
+
+    expect(onAutostartChange).toHaveBeenCalledWith(true);
+  });
+
+  it("disables the switch while updating and shows the native error", () => {
+    renderSettingsPanel(
+      vi.fn(),
+      vi.fn(),
+      {
+        enabled: true,
+        loading: true,
+        error: "无法更新开机自启动，请稍后重试",
+      },
+    );
+
+    const toggle = container?.querySelector<HTMLInputElement>(
+      'input[aria-label="开机时启动 Boocha"]',
+    );
+
+    expect(toggle?.disabled).toBe(true);
+    expect(container?.textContent).toContain("正在检查或更新启动设置");
+    expect(container?.querySelector('[role="alert"]')?.textContent).toBe(
+      "无法更新开机自启动，请稍后重试",
+    );
   });
 });

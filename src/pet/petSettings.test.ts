@@ -40,6 +40,9 @@ describe("petSettings", () => {
       timer: {
         countdownCompleteLines: ["时间到，休息一下"],
       },
+      startup: {
+        launchAtLogin: false,
+      },
     });
     expect("remindersPaused" in settings).toBe(false);
     expect("focusQuietHours" in settings).toBe(false);
@@ -54,6 +57,7 @@ describe("petSettings", () => {
         scale: 1.2,
         meals: { lunch: "11:45" },
         bubbles: { lunch: ["开饭开饭"] },
+        startup: { launchAtLogin: true },
       }),
     );
 
@@ -63,6 +67,7 @@ describe("petSettings", () => {
     expect(settings.meals).toEqual({ lunch: "11:45", dinner: "18:30" });
     expect(settings.bubbles.lunch).toEqual(["开饭开饭"]);
     expect(settings.bubbles.workClick.length).toBeGreaterThan(0);
+    expect(settings.startup).toEqual({ launchAtLogin: true });
   });
 
   it("falls back to defaults when saved settings are not readable", () => {

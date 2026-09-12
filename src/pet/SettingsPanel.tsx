@@ -7,6 +7,12 @@ interface SettingsPanelProps {
   onSave: (settings: PetSettings) => void;
   onPreviewSettings?: (settings: PetSettings) => void;
   onClose: () => void;
+  autostart: {
+    enabled: boolean;
+    loading: boolean;
+    error: string | null;
+  };
+  onAutostartChange: (enabled: boolean) => void;
 }
 
 interface BubbleTagEditorProps {
@@ -80,12 +86,18 @@ export function SettingsPanel({
   onSave,
   onPreviewSettings,
   onClose,
+  autostart,
+  onAutostartChange,
 }: SettingsPanelProps) {
   const [draft, setDraft] = useState(settings);
   const originalSettings = useRef(settings);
 
   const updateDraft = (next: Partial<PetSettings>) => {
-    const nextDraft = { ...draft, ...next } as PetSettings;
+    const nextDraft = {
+      ...draft,
+      ...next,
+      startup: settings.startup,
+    } as PetSettings;
     setDraft(nextDraft);
     onPreviewSettings?.(nextDraft);
   };
@@ -138,6 +150,30 @@ export function SettingsPanel({
       </div>
 
       <div className="settings-panel__section">
+        <h2>启动</h2>
+        <label className="settings-panel__toggle-row">
+          <span>
+            <strong>开机时启动 Boocha</strong>
+            <small>登录 Mac 后自动陪你出现在桌面</small>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            aria-label="开机时启动 Boocha"
+            checked={autostart.enabled}
+            disabled={autostart.loading}
+            onChange={(event) => onAutostartChange(event.currentTarget.checked)}
+          />
+        </label>
+        {autostart.loading ? (
+          <p className="settings-panel__hint">正在检查或更新启动设置…</p>
+        ) : null}
+        {autostart.error ? (
+          <p className="settings-panel__error" role="alert">{autostart.error}</p>
+        ) : null}
+      </div>
+
+      <div className="settings-panel__section">
         <h2>状态停留时间</h2>
         <label>
           吃饭状态显示秒数
@@ -183,10 +219,17 @@ export function SettingsPanel({
       </div>
 
       <footer className="settings-panel__footer">
-        <button type="button" onClick={() => { setDraft(originalSettings.current); onPreviewSettings?.(originalSettings.current); }}>
+        <button type="button" onClick={() => {
+          const restored = {
+            ...originalSettings.current,
+            startup: settings.startup,
+          };
+          setDraft(restored);
+          onPreviewSettings?.(restored);
+        }}>
           恢复上次保存
         </button>
-        <button className="settings-panel__primary-button" type="button" onClick={() => onSave(normalizePetSettings(draft))}>
+        <button className="settings-panel__primary-button" type="button" onClick={() => onSave(normalizePetSettings({ ...draft, startup: settings.startup }))}>
           保存设置
         </button>
       </footer>

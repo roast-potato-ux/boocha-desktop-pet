@@ -22,6 +22,9 @@ export interface PetSettings {
   timer: {
     countdownCompleteLines: string[];
   };
+  startup: {
+    launchAtLogin: boolean;
+  };
 }
 
 interface PetSettingsStorage {
@@ -53,6 +56,9 @@ export function createDefaultPetSettings(): PetSettings {
     },
     timer: {
       countdownCompleteLines: ["时间到，休息一下"],
+    },
+    startup: {
+      launchAtLogin: false,
     },
   };
 }
@@ -112,6 +118,10 @@ export function normalizePetSettings(input: unknown): PetSettings {
     source.timer !== null && typeof source.timer === "object"
       ? (source.timer as Record<string, unknown>)
       : {};
+  const startup =
+    source.startup !== null && typeof source.startup === "object"
+      ? (source.startup as Record<string, unknown>)
+      : {};
 
   return {
     scale: clamp(source.scale, 0.6, 1.4, defaults.scale),
@@ -150,6 +160,12 @@ export function normalizePetSettings(input: unknown): PetSettings {
         timer.countdownCompleteLines,
         defaults.timer.countdownCompleteLines,
       ),
+    },
+    startup: {
+      launchAtLogin:
+        typeof startup.launchAtLogin === "boolean"
+          ? startup.launchAtLogin
+          : defaults.startup.launchAtLogin,
     },
   };
 }

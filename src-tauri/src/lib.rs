@@ -1,9 +1,4 @@
-use tauri::{
-    menu::MenuBuilder,
-    tray::TrayIconBuilder,
-    Emitter,
-    Manager,
-};
+use tauri::{menu::MenuBuilder, tray::TrayIconBuilder, Emitter, Manager};
 
 /// Remove every vibrancy view `window_vibrancy` has added to this window.
 ///
@@ -106,7 +101,15 @@ fn setup_tray_menu(app: &mut tauri::App) -> tauri::Result<()> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+
+    // The Autostart plugin is desktop-only. Keep the dependency and this
+    // registration out of mobile builds so the shared app crate can still
+    // compile for Android and iOS in the future.
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let builder = builder.plugin(tauri_plugin_autostart::Builder::new().build());
+
+    builder
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         // Only let the window-state plugin remember WHERE the pet window was.
