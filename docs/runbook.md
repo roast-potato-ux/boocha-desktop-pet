@@ -17,7 +17,11 @@ Open `http://127.0.0.1:1420/`.
 - Double-click the pet to cycle through idle, work, eat, then back to idle.
 - In the macOS desktop app, the status bar menu can directly switch the pet to idle, work, or eat.
 - At 12:00 and 18:30 local time, the preview switches the pet to eat.
-- In the macOS desktop app, use the status bar menu to pause reminders, resume reminders, or quit Booch.
+- Right-click the pet to show frosted circular quick actions for countdown, stopwatch, and settings.
+- Countdown offers 5 / 15 / 30 / custom minutes before starting.
+- While countdown or stopwatch is running, the pet shows the work video and a frosted time badge above its head.
+- Countdown completion switches the pet to idle and shows the custom completion bubble.
+- Settings open beside the pet, and scale changes preview live.
 
 ## Run macOS Desktop App
 

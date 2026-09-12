@@ -192,12 +192,24 @@ body,
 /* ---- Settings panel ---- */
 
 .pet-stage--settings {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  box-sizing: border-box;
   overflow-y: auto;
   background: transparent;
 }
 
 .pet-stage--settings .pet-anchor {
-  display: none;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.pet-stage--settings .settings-panel {
+  width: 460px;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .settings-panel {
@@ -314,20 +326,6 @@ body,
   accent-color: #007aff;
 }
 
-.settings-panel__section input[type="checkbox"] {
-  accent-color: #007aff;
-}
-
-.settings-panel__check {
-  display: flex;
-  flex-direction: row !important;
-  align-items: center;
-  gap: 8px !important;
-  font-size: 13px;
-  color: #6e6e73;
-  cursor: pointer;
-}
-
 .settings-panel__segmented {
   display: flex;
   gap: 6px;
@@ -356,20 +354,6 @@ body,
   color: #1c1c1e;
   font-weight: 600;
   box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
-}
-
-.settings-panel__inline {
-  display: flex;
-  gap: 10px;
-}
-
-.settings-panel__inline > label {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-  color: #6e6e73;
 }
 
 .settings-panel__footer {
@@ -404,4 +388,69 @@ body,
 .settings-panel__primary-button:hover {
   background: #0066d6 !important;
   color: #fff !important;
+}
+
+.timer-badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 3;
+  min-width: 70px;
+  padding: 7px 12px;
+  border: 1px solid rgb(255 255 255 / 65%);
+  border-radius: 13px;
+  background: rgb(255 255 255 / 72%);
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  backdrop-filter: blur(14px) saturate(1.6);
+  box-shadow: 0 3px 10px rgb(60 47 30 / 12%);
+  color: #26221c;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  text-align: center;
+  transform: translate(-50%, 10px);
+}
+
+.quick-actions {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.quick-action {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgb(255 255 255 / 62%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 68%);
+  -webkit-backdrop-filter: blur(16px) saturate(1.65);
+  backdrop-filter: blur(16px) saturate(1.65);
+  box-shadow: 0 4px 14px rgb(60 47 30 / 14%);
+  color: #25211d;
+  cursor: pointer;
+  font-size: 17px;
+  pointer-events: auto;
+}
+
+.quick-action--top {
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+}
+
+.quick-action--upper-right {
+  right: 6px;
+  top: 52px;
+}
+
+.quick-action--right {
+  right: -4px;
+  top: 104px;
+}
+
+.quick-action--lower-right {
+  right: 18px;
+  bottom: 22px;
 }

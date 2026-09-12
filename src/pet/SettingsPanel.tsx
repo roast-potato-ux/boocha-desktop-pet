@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { normalizePetSettings } from "./petSettings";
 import type { PetSettings } from "./petSettings";
 
 interface SettingsPanelProps {
   settings: PetSettings;
   onSave: (settings: PetSettings) => void;
+  onPreviewSettings?: (settings: PetSettings) => void;
   onClose: () => void;
 }
 
@@ -19,11 +20,19 @@ function textToLines(text: string): string[] {
     .filter(Boolean);
 }
 
-export function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps) {
+export function SettingsPanel({
+  settings,
+  onSave,
+  onPreviewSettings,
+  onClose,
+}: SettingsPanelProps) {
   const [draft, setDraft] = useState(settings);
+  const originalSettings = useRef(settings);
 
   const updateDraft = (next: Partial<PetSettings>) => {
-    setDraft((current) => ({ ...current, ...next } as PetSettings));
+    const nextDraft = { ...draft, ...next } as PetSettings;
+    setDraft(nextDraft);
+    onPreviewSettings?.(nextDraft);
   };
 
   const updateDurations = (next: Partial<PetSettings["durations"]>) => {
@@ -38,12 +47,8 @@ export function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps)
     updateDraft({ bubbles: { ...draft.bubbles, ...next } });
   };
 
-  const updateFocusQuietHours = (
-    next: Partial<PetSettings["focusQuietHours"]>,
-  ) => {
-    updateDraft({
-      focusQuietHours: { ...draft.focusQuietHours, ...next },
-    });
+  const updateTimer = (next: Partial<PetSettings["timer"]>) => {
+    updateDraft({ timer: { ...draft.timer, ...next } });
   };
 
   return (
@@ -113,18 +118,6 @@ export function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps)
           />
         </label>
         <label>
-          工作状态显示分钟数
-          <input
-            type="number"
-            min="1"
-            max="60"
-            value={draft.durations.workMinutes}
-            onChange={(event) =>
-              updateDurations({ workMinutes: Number(event.currentTarget.value) })
-            }
-          />
-        </label>
-        <label>
           待机随机冒泡间隔分钟
           <input
             type="number"
@@ -141,7 +134,7 @@ export function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps)
       </div>
 
       <div className="settings-panel__section">
-        <h2>饭点和不打扰</h2>
+        <h2>饭点提醒</h2>
         <label>
           午饭时间
           <input
@@ -158,48 +151,35 @@ export function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps)
             onChange={(event) => updateMeals({ dinner: event.currentTarget.value })}
           />
         </label>
-        <label className="settings-panel__check">
+      </div>
+
+      <div className="settings-panel__section">
+        <h2>计时和倒计时</h2>
+        <label>
+          自定义倒计时分钟数
           <input
-            type="checkbox"
-            checked={draft.remindersPaused}
+            type="number"
+            min="1"
+            max="180"
+            value={draft.timer.customCountdownMinutes}
             onChange={(event) =>
-              updateDraft({ remindersPaused: event.currentTarget.checked })
+              updateTimer({
+                customCountdownMinutes: Number(event.currentTarget.value),
+              })
             }
           />
-          暂停提醒
         </label>
-        <label className="settings-panel__check">
-          <input
-            type="checkbox"
-            checked={draft.focusQuietHours.enabled}
+        <label>
+          倒计时结束提示
+          <textarea
+            value={linesToText(draft.timer.countdownCompleteLines)}
             onChange={(event) =>
-              updateFocusQuietHours({ enabled: event.currentTarget.checked })
+              updateTimer({
+                countdownCompleteLines: textToLines(event.currentTarget.value),
+              })
             }
           />
-          专注时段不打扰
         </label>
-        <div className="settings-panel__inline">
-          <label>
-            开始
-            <input
-              type="time"
-              value={draft.focusQuietHours.start}
-              onChange={(event) =>
-                updateFocusQuietHours({ start: event.currentTarget.value })
-              }
-            />
-          </label>
-          <label>
-            结束
-            <input
-              type="time"
-              value={draft.focusQuietHours.end}
-              onChange={(event) =>
-                updateFocusQuietHours({ end: event.currentTarget.value })
-              }
-            />
-          </label>
-        </div>
       </div>
 
       <div className="settings-panel__section">
@@ -270,7 +250,13 @@ export function SettingsPanel({ settings, onSave, onClose }: SettingsPanelProps)
       </div>
 
       <footer className="settings-panel__footer">
-        <button type="button" onClick={() => setDraft(settings)}>
+        <button
+          type="button"
+          onClick={() => {
+            setDraft(originalSettings.current);
+            onPreviewSettings?.(originalSettings.current);
+          }}
+        >
           恢复上次保存
         </button>
         <button

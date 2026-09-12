@@ -24,20 +24,27 @@ describe("petSettings", () => {
       scale: 1,
       durations: {
         eatSeconds: 30,
-        workMinutes: 10,
         idleInteractionMinutes: 3,
       },
       meals: {
         lunch: "12:00",
         dinner: "18:30",
       },
-      remindersPaused: false,
-      focusQuietHours: {
-        enabled: false,
-        start: "22:30",
-        end: "09:00",
+    });
+  });
+
+  it("provides focus timer defaults and no longer exposes pause or quiet hours", () => {
+    const settings = createDefaultPetSettings();
+
+    expect(settings).toMatchObject({
+      timer: {
+        customCountdownMinutes: 25,
+        countdownCompleteLines: ["时间到，休息一下"],
       },
     });
+    expect("remindersPaused" in settings).toBe(false);
+    expect("focusQuietHours" in settings).toBe(false);
+    expect("workMinutes" in settings.durations).toBe(false);
   });
 
   it("loads saved settings while filling missing fields from defaults", () => {
@@ -71,7 +78,6 @@ describe("petSettings", () => {
       scale: 9,
       durations: {
         eatSeconds: 3,
-        workMinutes: 999,
         idleInteractionMinutes: 0,
       },
       meals: {
@@ -82,18 +88,15 @@ describe("petSettings", () => {
         idleClick: ["  "],
         lunch: ["开饭"],
       },
-      remindersPaused: true,
-      focusQuietHours: {
-        enabled: true,
-        start: "25:00",
-        end: "08:30",
+      timer: {
+        customCountdownMinutes: 999,
+        countdownCompleteLines: ["  完成啦  "],
       },
     });
 
     expect(settings.scale).toBe(1.4);
     expect(settings.durations).toEqual({
       eatSeconds: 10,
-      workMinutes: 60,
       idleInteractionMinutes: 1,
     });
     expect(settings.meals).toEqual({ lunch: "12:00", dinner: "19:15" });
@@ -101,11 +104,9 @@ describe("petSettings", () => {
       createDefaultPetSettings().bubbles.idleClick,
     );
     expect(settings.bubbles.lunch).toEqual(["开饭"]);
-    expect(settings.remindersPaused).toBe(true);
-    expect(settings.focusQuietHours).toEqual({
-      enabled: true,
-      start: "22:30",
-      end: "08:30",
+    expect(settings.timer).toEqual({
+      customCountdownMinutes: 180,
+      countdownCompleteLines: ["完成啦"],
     });
   });
 

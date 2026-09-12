@@ -12,7 +12,6 @@ export interface PetSettings {
   scale: number;
   durations: {
     eatSeconds: number;
-    workMinutes: number;
     idleInteractionMinutes: number;
   };
   meals: {
@@ -20,11 +19,9 @@ export interface PetSettings {
     dinner: string;
   };
   bubbles: PetBubbleSettings;
-  remindersPaused: boolean;
-  focusQuietHours: {
-    enabled: boolean;
-    start: string;
-    end: string;
+  timer: {
+    customCountdownMinutes: number;
+    countdownCompleteLines: string[];
   };
 }
 
@@ -40,7 +37,6 @@ export function createDefaultPetSettings(): PetSettings {
     scale: 1,
     durations: {
       eatSeconds: 30,
-      workMinutes: 10,
       idleInteractionMinutes: 3,
     },
     meals: {
@@ -56,11 +52,9 @@ export function createDefaultPetSettings(): PetSettings {
       dinner: ["晚饭时间"],
       workStart: ["开始认真搬砖"],
     },
-    remindersPaused: false,
-    focusQuietHours: {
-      enabled: false,
-      start: "22:30",
-      end: "09:00",
+    timer: {
+      customCountdownMinutes: 25,
+      countdownCompleteLines: ["时间到，休息一下"],
     },
   };
 }
@@ -113,10 +107,9 @@ export function normalizePetSettings(input: unknown): PetSettings {
     source.bubbles !== null && typeof source.bubbles === "object"
       ? (source.bubbles as Record<string, unknown>)
       : {};
-  const focusQuietHours =
-    source.focusQuietHours !== null &&
-    typeof source.focusQuietHours === "object"
-      ? (source.focusQuietHours as Record<string, unknown>)
+  const timer =
+    source.timer !== null && typeof source.timer === "object"
+      ? (source.timer as Record<string, unknown>)
       : {};
 
   return {
@@ -127,12 +120,6 @@ export function normalizePetSettings(input: unknown): PetSettings {
         10,
         180,
         defaults.durations.eatSeconds,
-      ),
-      workMinutes: clamp(
-        durations.workMinutes,
-        1,
-        60,
-        defaults.durations.workMinutes,
       ),
       idleInteractionMinutes: clamp(
         durations.idleInteractionMinutes,
@@ -157,21 +144,17 @@ export function normalizePetSettings(input: unknown): PetSettings {
       dinner: normalizeLines(bubbles.dinner, defaults.bubbles.dinner),
       workStart: normalizeLines(bubbles.workStart, defaults.bubbles.workStart),
     },
-    remindersPaused:
-      typeof source.remindersPaused === "boolean"
-        ? source.remindersPaused
-        : defaults.remindersPaused,
-    focusQuietHours: {
-      enabled:
-        typeof focusQuietHours.enabled === "boolean"
-          ? focusQuietHours.enabled
-          : defaults.focusQuietHours.enabled,
-      start: isTimeString(focusQuietHours.start)
-        ? focusQuietHours.start
-        : defaults.focusQuietHours.start,
-      end: isTimeString(focusQuietHours.end)
-        ? focusQuietHours.end
-        : defaults.focusQuietHours.end,
+    timer: {
+      customCountdownMinutes: clamp(
+        timer.customCountdownMinutes,
+        1,
+        180,
+        defaults.timer.customCountdownMinutes,
+      ),
+      countdownCompleteLines: normalizeLines(
+        timer.countdownCompleteLines,
+        defaults.timer.countdownCompleteLines,
+      ),
     },
   };
 }

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bubble } from "./pet/Bubble";
 import { PetSprite } from "./pet/PetSprite";
+import { QuickActions } from "./pet/QuickActions";
 import { SettingsPanel } from "./pet/SettingsPanel";
+import { TimerBadge } from "./pet/TimerBadge";
 import {
   createInitialAmbientInteractionState,
   evaluateAmbientInteraction,
@@ -12,7 +14,6 @@ import {
 } from "./pet/mealScheduler";
 import {
   listenForPetStateRequests,
-  listenForReminderPauseChanges,
   listenForSettingsPanelRequests,
 } from "./pet/nativeMenuClient";
 import {
@@ -30,12 +31,21 @@ import {
   savePetSettings,
 } from "./pet/petSettings";
 import type { PetSettings } from "./pet/petSettings";
+import {
+  createInactiveFocusTimer,
+  evaluateFocusTimer,
+  startCountdown,
+  startStopwatch,
+  stopFocusTimer,
+} from "./pet/focusTimer";
+import type { FocusTimerState } from "./pet/focusTimer";
 import { reducePetState } from "./pet/stateMachine";
 import type { PetEvent, PetViewModel } from "./pet/types";
 import { isNativePetWindowAvailable } from "./pet/windowControls";
 
 const initialPet: PetViewModel = {
   state: "idle",
+  previousState: null,
   bubble: null,
   lastInteractionAt: Date.now(),
 };
@@ -53,6 +63,16 @@ export default function App() {
     loadPetSettings(window.localStorage),
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsBeforePreview, setSettingsBeforePreview] =
+    useState<PetSettings | null>(null);
+  const [focusTimer, setFocusTimer] = useState<FocusTimerState>(() =>
+    createInactiveFocusTimer(),
+  );
+  const [timerDisplay, setTimerDisplay] = useState<string | null>(null);
+  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+  const [quickActionMode, setQuickActionMode] = useState<"main" | "countdown">(
+    "main",
+  );
   const [position, setPosition] = useState(() => {
     const savedPosition = loadPetPosition(window.localStorage);
     return savedPosition ?? getDefaultPetPosition(getViewport());
@@ -78,12 +98,82 @@ export default function App() {
     setSettings(savedSettings);
   };
 
+  const openSettings = useCallback(() => {
+    if (!settingsOpen) {
+      setSettingsBeforePreview(settings);
+    }
+
+    setSettingsOpen(true);
+  }, [settings, settingsOpen]);
+
+  const closeSettings = useCallback(() => {
+    if (settingsBeforePreview) {
+      setSettings(settingsBeforePreview);
+    }
+
+    setSettingsBeforePreview(null);
+    setSettingsOpen(false);
+  }, [settingsBeforePreview]);
+
+  const focusTimerActive = focusTimer.mode !== null;
+  const visiblePet = focusTimerActive
+    ? { ...pet, state: "work" as const, bubble: null }
+    : pet;
+
+  const closeQuickActions = () => {
+    setQuickActionsOpen(false);
+    setQuickActionMode("main");
+  };
+
+  const startCountdownForMinutes = (minutes: number) => {
+    setFocusTimer(startCountdown(Date.now(), minutes));
+    setTimerDisplay(null);
+    dispatchPet({ type: "select-state", state: "work" });
+    closeQuickActions();
+  };
+
+  const toggleStopwatch = () => {
+    if (focusTimer.mode === "stopwatch") {
+      setFocusTimer(stopFocusTimer());
+      setTimerDisplay(null);
+      dispatchPet({ type: "select-state", state: "idle" });
+      closeQuickActions();
+      return;
+    }
+
+    setFocusTimer(startStopwatch(Date.now()));
+    setTimerDisplay(null);
+    dispatchPet({ type: "select-state", state: "work" });
+    closeQuickActions();
+  };
+
+  useEffect(() => {
+    const tick = () => {
+      const result = evaluateFocusTimer(Date.now(), focusTimer);
+      setTimerDisplay(result.display);
+
+      if (result.completed) {
+        const line =
+          settings.timer.countdownCompleteLines[0] ?? "时间到，休息一下";
+        dispatchPet({ type: "countdown-complete", bubble: line });
+      }
+
+      setFocusTimer(result.state);
+    };
+
+    tick();
+    const timer = window.setInterval(tick, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [dispatchPet, focusTimer, settings.timer.countdownCompleteLines]);
+
   useEffect(() => {
     const tick = () => {
       const result = evaluateMealReminder(new Date(), mealReminderState.current, {
-        paused: settings.remindersPaused,
+        blocked: focusTimer.mode !== null,
         meals: settings.meals,
-        focusQuietHours: settings.focusQuietHours,
       });
       mealReminderState.current = result.state;
 
@@ -98,9 +188,13 @@ export default function App() {
     return () => {
       window.clearInterval(timer);
     };
-  }, [dispatchPet, settings.focusQuietHours, settings.meals, settings.remindersPaused]);
+  }, [dispatchPet, focusTimer.mode, settings.meals]);
 
   useEffect(() => {
+    if (focusTimer.mode !== null) {
+      return;
+    }
+
     const tick = () => {
       const result = evaluateAmbientInteraction(
         Date.now(),
@@ -123,7 +217,7 @@ export default function App() {
     return () => {
       window.clearInterval(timer);
     };
-  }, [dispatchPet, pet, settings.durations.idleInteractionMinutes]);
+  }, [dispatchPet, focusTimer.mode, pet, settings.durations.idleInteractionMinutes]);
 
   useEffect(() => {
     if (!pet.bubble) {
@@ -146,27 +240,13 @@ export default function App() {
     }
 
     const timer = window.setTimeout(() => {
-      dispatchPet({ type: "return-idle" });
+      dispatchPet({ type: "return-previous" });
     }, settings.durations.eatSeconds * 1000);
 
     return () => {
       window.clearTimeout(timer);
     };
   }, [dispatchPet, pet.state, settings.durations.eatSeconds]);
-
-  useEffect(() => {
-    if (pet.state !== "work") {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      dispatchPet({ type: "return-idle" });
-    }, settings.durations.workMinutes * 60 * 1000);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [dispatchPet, pet.state, settings.durations.workMinutes]);
 
   useEffect(() => {
     if (settingsOpen) {
@@ -179,7 +259,6 @@ export default function App() {
 
   useEffect(() => {
     let unlistenStateRequests: (() => void) | null = null;
-    let unlisten: (() => void) | null = null;
     let unlistenSettingsRequests: (() => void) | null = null;
     let cancelled = false;
 
@@ -194,19 +273,8 @@ export default function App() {
       unlistenStateRequests = nextUnlisten;
     });
 
-    void listenForReminderPauseChanges((paused) => {
-      persistSettings({ ...settings, remindersPaused: paused });
-    }).then((nextUnlisten) => {
-      if (cancelled) {
-        nextUnlisten();
-        return;
-      }
-
-      unlisten = nextUnlisten;
-    });
-
     void listenForSettingsPanelRequests(() => {
-      setSettingsOpen(true);
+      openSettings();
     }).then((nextUnlisten) => {
       if (cancelled) {
         nextUnlisten();
@@ -219,10 +287,9 @@ export default function App() {
     return () => {
       cancelled = true;
       unlistenStateRequests?.();
-      unlisten?.();
       unlistenSettingsRequests?.();
     };
-  }, [dispatchPet, settings]);
+  }, [dispatchPet, openSettings]);
 
   return (
     <main
@@ -234,15 +301,24 @@ export default function App() {
           settings={settings}
           onSave={(nextSettings) => {
             persistSettings(nextSettings);
+            setSettingsBeforePreview(null);
             setSettingsOpen(false);
           }}
-          onClose={() => setSettingsOpen(false)}
+          onPreviewSettings={setSettings}
+          onClose={closeSettings}
         />
       ) : null}
       <div
         className={`pet-anchor${isNativePetWindowAvailable() ? " pet-anchor--native" : ""}`}
         style={
-          isNativePetWindowAvailable()
+          settingsOpen
+            ? {
+                left: 0,
+                top: 0,
+                width: 188 * settings.scale,
+                height: 240 * settings.scale,
+              }
+            : isNativePetWindowAvailable()
             ? {
                 left: 0,
                 top: 0,
@@ -297,10 +373,9 @@ export default function App() {
           savePetPosition(window.localStorage, nextPosition);
         }}
         onContextMenu={(event) => {
-          // Right-clicking the pet opens the settings panel, so you don't have
-          // to hunt for the menu bar tray icon.
           event.preventDefault();
-          setSettingsOpen(true);
+          setQuickActionsOpen((open) => !open);
+          setQuickActionMode("main");
         }}
       >
         <div
@@ -309,11 +384,37 @@ export default function App() {
             transform: `scale(${settings.scale})`,
           }}
         >
-          {pet.bubble ? <Bubble text={pet.bubble} /> : null}
+          {focusTimerActive && timerDisplay ? (
+            <TimerBadge display={timerDisplay} />
+          ) : null}
+          {!focusTimerActive && pet.bubble ? <Bubble text={pet.bubble} /> : null}
+          {quickActionsOpen ? (
+            <QuickActions
+              mode={quickActionMode}
+              onShowCountdownOptions={() => setQuickActionMode("countdown")}
+              onStartCountdown={startCountdownForMinutes}
+              onStartCustomCountdown={() =>
+                startCountdownForMinutes(settings.timer.customCountdownMinutes)
+              }
+              onToggleStopwatch={toggleStopwatch}
+              onOpenSettings={() => {
+                closeQuickActions();
+                openSettings();
+              }}
+            />
+          ) : null}
           <PetSprite
-            pet={pet}
-            onClick={() => dispatchPet({ type: "pet-click" })}
-            onToggleWork={() => dispatchPet({ type: "cycle-state" })}
+            pet={visiblePet}
+            onClick={() => {
+              if (!focusTimerActive) {
+                dispatchPet({ type: "pet-click" });
+              }
+            }}
+            onToggleWork={() => {
+              if (!focusTimerActive) {
+                dispatchPet({ type: "cycle-state" });
+              }
+            }}
           />
         </div>
       </div>

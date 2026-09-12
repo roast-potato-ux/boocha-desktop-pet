@@ -21,15 +21,10 @@ interface MealReminderResult {
 }
 
 interface MealReminderOptions {
-  paused?: boolean;
+  blocked?: boolean;
   meals?: {
     lunch: string;
     dinner: string;
-  };
-  focusQuietHours?: {
-    enabled: boolean;
-    start: string;
-    end: string;
   };
 }
 
@@ -71,27 +66,6 @@ function parseMealMinute(value: string, fallback: number): number {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
-function isWithinQuietHours(
-  minuteOfDay: number,
-  quietHours: MealReminderOptions["focusQuietHours"],
-): boolean {
-  if (!quietHours?.enabled) {
-    return false;
-  }
-
-  const start = parseMealMinute(quietHours.start, -1);
-  const end = parseMealMinute(quietHours.end, -1);
-  if (start < 0 || end < 0 || start === end) {
-    return false;
-  }
-
-  if (start < end) {
-    return minuteOfDay >= start && minuteOfDay < end;
-  }
-
-  return minuteOfDay >= start || minuteOfDay < end;
-}
-
 function createMealSchedule(options: MealReminderOptions): MealSchedule[] {
   return [
     {
@@ -116,14 +90,11 @@ export function evaluateMealReminder(
   state: MealReminderState,
   options: MealReminderOptions = {},
 ): MealReminderResult {
-  if (options.paused) {
+  if (options.blocked) {
     return { event: null, state };
   }
 
   const stamp = toLocalStamp(now);
-  if (isWithinQuietHours(stamp.minuteOfDay, options.focusQuietHours)) {
-    return { event: null, state };
-  }
 
   const matchedMeal = createMealSchedule(options).find(
     (meal) => meal.minuteOfDay === stamp.minuteOfDay,

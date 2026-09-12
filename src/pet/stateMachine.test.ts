@@ -4,6 +4,7 @@ import type { PetViewModel } from "./types";
 
 const idle: PetViewModel = {
   state: "idle",
+  previousState: null,
   bubble: null,
   lastInteractionAt: 0,
 };
@@ -77,6 +78,7 @@ describe("reducePetState", () => {
   it("clears a bubble without changing the current pet state", () => {
     const work: PetViewModel = {
       state: "work",
+      previousState: null,
       bubble: "别忘了保存",
       lastInteractionAt: 4000,
     };
@@ -89,6 +91,7 @@ describe("reducePetState", () => {
 
     expect(result).toEqual({
       state: "work",
+      previousState: null,
       bubble: null,
       lastInteractionAt: 4000,
     });
@@ -97,6 +100,7 @@ describe("reducePetState", () => {
   it("does not clear a newer bubble from an older timer", () => {
     const newerInteraction: PetViewModel = {
       state: "idle",
+      previousState: null,
       bubble: "我在",
       lastInteractionAt: 7000,
     };
@@ -118,5 +122,48 @@ describe("reducePetState", () => {
     expect(work.state).toBe("work");
     expect(eat.state).toBe("eat");
     expect(backToIdle.state).toBe("idle");
+  });
+
+  it("returns from eating to the previous visible state", () => {
+    const work: PetViewModel = {
+      state: "work",
+      previousState: null,
+      bubble: null,
+      lastInteractionAt: 1000,
+    };
+    const eating = reducePetState(
+      work,
+      { type: "meal-reminder", meal: "dinner" },
+      2000,
+    );
+    const returned = reducePetState(eating, { type: "return-previous" }, 3000);
+
+    expect(eating.previousState).toBe("work");
+    expect(returned).toMatchObject({
+      state: "work",
+      previousState: null,
+      bubble: null,
+    });
+  });
+
+  it("shows countdown completion while switching to idle", () => {
+    const work: PetViewModel = {
+      state: "work",
+      previousState: null,
+      bubble: null,
+      lastInteractionAt: 1000,
+    };
+    const result = reducePetState(
+      work,
+      { type: "countdown-complete", bubble: "时间到" },
+      2000,
+    );
+
+    expect(result).toEqual({
+      state: "idle",
+      previousState: null,
+      bubble: "时间到",
+      lastInteractionAt: 2000,
+    });
   });
 });

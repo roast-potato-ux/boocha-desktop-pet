@@ -11,10 +11,12 @@ export type PetEvent =
   | { type: "meal-reminder"; meal: MealKind }
   | { type: "cycle-state" }
   | { type: "clear-bubble"; interactionAt: number }
-  | { type: "return-idle" };
+  | { type: "return-previous" }
+  | { type: "countdown-complete"; bubble: string };
 
 export interface PetViewModel {
   state: PetState;
+  previousState: PetState | null;
   bubble: string | null;
   lastInteractionAt: number;
 }
