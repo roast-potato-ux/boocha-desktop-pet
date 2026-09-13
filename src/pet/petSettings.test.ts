@@ -21,7 +21,7 @@ class MemoryStorage {
 describe("petSettings", () => {
   it("provides defaults for the first local settings panel", () => {
     expect(createDefaultPetSettings()).toMatchObject({
-      scale: 1,
+      scale: 0.8,
       durations: {
         eatMinutes: 1,
         idleInteractionMinutes: 3,
