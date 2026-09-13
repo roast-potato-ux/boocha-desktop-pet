@@ -59,6 +59,7 @@ describe("createPetStateRequestHandler", () => {
     });
 
     handlePetStateRequest({ payload: "sleep" });
+    handlePetStateRequest({ payload: "surprise" });
     handlePetStateRequest({ payload: 1 });
 
     expect(states).toEqual([]);

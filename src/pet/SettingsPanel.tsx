@@ -1,6 +1,10 @@
 import { useRef, useState } from "react";
-import { normalizePetSettings } from "./petSettings";
-import type { PetSettings } from "./petSettings";
+import {
+  getBubbleGroupLines,
+  normalizePetSettings,
+  setBubbleGroupLines,
+} from "./petSettings";
+import type { BubbleGroup, PetSettings } from "./petSettings";
 
 interface SettingsPanelProps {
   settings: PetSettings;
@@ -24,6 +28,7 @@ interface BubbleTagEditorProps {
 
 function BubbleTagEditor({ field, label, lines, onChange }: BubbleTagEditorProps) {
   const [newLine, setNewLine] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
 
   const addLine = () => {
     const nextLine = newLine.trim();
@@ -33,6 +38,7 @@ function BubbleTagEditor({ field, label, lines, onChange }: BubbleTagEditorProps
 
     onChange([...lines, nextLine]);
     setNewLine("");
+    setIsAdding(false);
   };
 
   return (
@@ -52,31 +58,61 @@ function BubbleTagEditor({ field, label, lines, onChange }: BubbleTagEditorProps
             </button>
           </span>
         ))}
-      </div>
-      <div className="bubble-tag-editor__add-row">
-        <input
-          type="text"
-          value={newLine}
-          aria-label={`输入${label}`}
-          placeholder="输入一句话"
-          onChange={(event) => setNewLine(event.currentTarget.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              addLine();
-            }
-          }}
-        />
         <button
           type="button"
           className="bubble-tag-editor__add-button"
           aria-label={`添加${label}`}
           title="添加"
-          onClick={addLine}
+          onClick={() => setIsAdding(true)}
         >
           +
         </button>
       </div>
+      {isAdding ? (
+        <div
+          className="bubble-tag-editor__popover"
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setNewLine("");
+              setIsAdding(false);
+            }
+          }}
+        >
+          <input
+            autoFocus
+            type="text"
+            value={newLine}
+            aria-label={`输入${label}`}
+            placeholder="输入一句话"
+            onChange={(event) => setNewLine(event.currentTarget.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                addLine();
+              }
+            }}
+          />
+          <button
+            type="button"
+            aria-label={`确认添加${label}`}
+            title="添加"
+            onClick={addLine}
+          >
+            添加
+          </button>
+          <button
+            type="button"
+            aria-label={`取消添加${label}`}
+            title="取消"
+            onClick={() => {
+              setNewLine("");
+              setIsAdding(false);
+            }}
+          >
+            ×
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -114,29 +150,40 @@ export function SettingsPanel({
     updateDraft({ bubbles: { ...draft.bubbles, ...next } });
   };
 
+  const updateBubbleGroup = (group: BubbleGroup, lines: string[]) => {
+    updateBubbles(setBubbleGroupLines(draft.bubbles, group, lines));
+  };
+
   const updateTimer = (next: Partial<PetSettings["timer"]>) => {
     updateDraft({ timer: { ...draft.timer, ...next } });
   };
 
+  const updateSurprise = (next: Partial<PetSettings["surprise"]>) => {
+    updateDraft({ surprise: { ...draft.surprise, ...next } });
+  };
+
   return (
     <section className="settings-panel" aria-label="Boocha 设置面板">
-      <button
-        className="settings-panel__close-dot"
-        type="button"
-        aria-label="关闭设置"
-        title="关闭"
-        onClick={onClose}
-      />
-      <header className="settings-panel__header" data-tauri-drag-region>
-        <div data-tauri-drag-region>
-          <p className="settings-panel__eyebrow" data-tauri-drag-region>
-            Boocha Desktop Pet
-          </p>
-          <h1 data-tauri-drag-region>设置</h1>
-        </div>
-      </header>
+      <div className="settings-panel__safe-area">
+        <button
+          className="settings-panel__close-dot"
+          type="button"
+          aria-label="关闭设置"
+          title="关闭"
+          onClick={onClose}
+        />
+        <header className="settings-panel__header" data-tauri-drag-region>
+          <div data-tauri-drag-region>
+            <p className="settings-panel__eyebrow" data-tauri-drag-region>
+              Boocha Desktop Pet
+            </p>
+            <h1 data-tauri-drag-region>设置</h1>
+          </div>
+        </header>
+      </div>
 
-      <div className="settings-panel__section">
+      <div className="settings-panel__scroll">
+        <div className="settings-panel__section">
         <h2>桌宠大小</h2>
         <div className="settings-panel__segmented">
           <button type="button" data-active={draft.scale === 0.8} onClick={() => updateDraft({ scale: 0.8 })}>小</button>
@@ -150,12 +197,9 @@ export function SettingsPanel({
       </div>
 
       <div className="settings-panel__section">
-        <h2>启动</h2>
+        <h2>开机时启动 Boocha</h2>
         <label className="settings-panel__toggle-row">
-          <span>
-            <strong>开机时启动 Boocha</strong>
-            <small>登录 Mac 后自动陪你出现在桌面</small>
-          </span>
+          <small>登录 Mac 后自动陪你出现在桌面</small>
           <input
             type="checkbox"
             role="switch"
@@ -176,12 +220,26 @@ export function SettingsPanel({
       <div className="settings-panel__section">
         <h2>状态停留时间</h2>
         <label>
-          吃饭状态显示秒数
-          <input type="number" min="10" max="180" value={draft.durations.eatSeconds} onChange={(event) => updateDurations({ eatSeconds: Number(event.currentTarget.value) })} />
+          吃饭状态停留时间（分钟）
+          <input type="number" min="1" max="60" value={draft.durations.eatMinutes} onChange={(event) => updateDurations({ eatMinutes: Number(event.currentTarget.value) })} />
         </label>
         <label>
-          待机随机冒泡间隔分钟
+          嗯嗯随机冒泡间隔分钟
           <input type="number" min="1" max="30" value={draft.durations.idleInteractionMinutes} onChange={(event) => updateDurations({ idleInteractionMinutes: Number(event.currentTarget.value) })} />
+        </label>
+      </div>
+
+      <div className="settings-panel__section">
+        <h2>彩蛋</h2>
+        <label className="settings-panel__toggle-row">
+          <small>进入工作状态时，彩蛋会随机出现。</small>
+          <input
+            type="checkbox"
+            role="switch"
+            aria-label="开启彩蛋"
+            checked={draft.surprise.enabled}
+            onChange={(event) => updateSurprise({ enabled: event.currentTarget.checked })}
+          />
         </label>
       </div>
 
@@ -209,16 +267,12 @@ export function SettingsPanel({
 
       <div className="settings-panel__section">
         <h2>气泡文案</h2>
-        <BubbleTagEditor field="idleClick" label="待机点击" lines={draft.bubbles.idleClick} onChange={(idleClick) => updateBubbles({ idleClick })} />
-        <BubbleTagEditor field="workClick" label="工作时点击" lines={draft.bubbles.workClick} onChange={(workClick) => updateBubbles({ workClick })} />
-        <BubbleTagEditor field="eatClick" label="吃饭时点击" lines={draft.bubbles.eatClick} onChange={(eatClick) => updateBubbles({ eatClick })} />
-        <BubbleTagEditor field="ambientIdle" label="待机自己冒泡" lines={draft.bubbles.ambientIdle} onChange={(ambientIdle) => updateBubbles({ ambientIdle })} />
-        <BubbleTagEditor field="lunch" label="午饭提醒" lines={draft.bubbles.lunch} onChange={(lunch) => updateBubbles({ lunch })} />
-        <BubbleTagEditor field="dinner" label="晚饭提醒" lines={draft.bubbles.dinner} onChange={(dinner) => updateBubbles({ dinner })} />
-        <BubbleTagEditor field="workStart" label="开始工作时" lines={draft.bubbles.workStart} onChange={(workStart) => updateBubbles({ workStart })} />
+        <BubbleTagEditor field="idle" label="嗯嗯" lines={getBubbleGroupLines(draft.bubbles, "idle")} onChange={(lines) => updateBubbleGroup("idle", lines)} />
+        <BubbleTagEditor field="work" label="工作" lines={getBubbleGroupLines(draft.bubbles, "work")} onChange={(lines) => updateBubbleGroup("work", lines)} />
+        <BubbleTagEditor field="eat" label="吃饭" lines={getBubbleGroupLines(draft.bubbles, "eat")} onChange={(lines) => updateBubbleGroup("eat", lines)} />
       </div>
 
-      <footer className="settings-panel__footer">
+        <footer className="settings-panel__footer">
         <button type="button" onClick={() => {
           const restored = {
             ...originalSettings.current,
@@ -232,7 +286,8 @@ export function SettingsPanel({
         <button className="settings-panel__primary-button" type="button" onClick={() => onSave(normalizePetSettings({ ...draft, startup: settings.startup }))}>
           保存设置
         </button>
-      </footer>
+        </footer>
+      </div>
     </section>
   );
 }

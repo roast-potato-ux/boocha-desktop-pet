@@ -55,7 +55,7 @@ fn set_panel_vibrancy(window: tauri::WebviewWindow, enabled: bool) -> Result<(),
 
 fn setup_tray_menu(app: &mut tauri::App) -> tauri::Result<()> {
     let menu = MenuBuilder::new(app)
-        .text("show-idle", "切到待机")
+        .text("show-idle", "切到嗯嗯")
         .text("show-work", "切到工作")
         .text("show-eat", "切到吃饭")
         .separator()

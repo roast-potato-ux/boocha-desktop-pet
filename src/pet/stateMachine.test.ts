@@ -13,7 +13,7 @@ describe("reducePetState", () => {
   it("starts work mode when the user asks to work", () => {
     expect(reducePetState(idle, { type: "start-work" }, 1000)).toMatchObject({
       state: "work",
-      bubble: "开始认真搬砖",
+      bubble: "盯着你工作",
     });
   });
 
@@ -32,7 +32,7 @@ describe("reducePetState", () => {
       reducePetState(idle, { type: "meal-reminder", meal: "lunch" }, 2000),
     ).toMatchObject({
       state: "eat",
-      bubble: "饭点到",
+      bubble: "饭饭时间",
     });
   });
 
@@ -51,7 +51,7 @@ describe("reducePetState", () => {
 
     expect(result).toMatchObject({
       state: "idle",
-      bubble: "偷偷冒个泡",
+      bubble: "我在",
       lastInteractionAt: 3500,
     });
   });
@@ -164,6 +164,29 @@ describe("reducePetState", () => {
       previousState: null,
       bubble: "时间到",
       lastInteractionAt: 2000,
+    });
+  });
+
+  it("shows the fixed surprise message for one temporary work state then returns to work", () => {
+    const work: PetViewModel = {
+      state: "work",
+      previousState: null,
+      bubble: null,
+      lastInteractionAt: 1_000,
+    };
+
+    const surprise = reducePetState(work, { type: "start-surprise" }, 2_000);
+    const restored = reducePetState(surprise, { type: "finish-surprise" }, 62_000);
+
+    expect(surprise).toMatchObject({
+      state: "surprise",
+      previousState: "work",
+      bubble: "小彩蛋送你",
+    });
+    expect(restored).toMatchObject({
+      state: "work",
+      previousState: null,
+      bubble: null,
     });
   });
 });

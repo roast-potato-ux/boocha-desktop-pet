@@ -64,20 +64,27 @@ describe("SettingsPanel", () => {
     expect(container?.textContent).not.toContain("专注时段不打扰");
   });
 
-  it("adds and removes countdown completion tags while keeping one line", () => {
+  it("keeps add fields hidden until the user opens the small plus button", () => {
     const onPreviewSettings = renderSettingsPanel();
     const completionEditor = container?.querySelector('[data-bubble-field="countdownCompleteLines"]');
-    const completionInput = completionEditor?.querySelector<HTMLInputElement>('input');
     const addButton = completionEditor?.querySelector<HTMLButtonElement>('button[aria-label="添加倒计时结束提示"]');
-    const removeButton = completionEditor?.querySelector<HTMLButtonElement>('button[aria-label="删除气泡文案：时间到，休息一下"]');
+
+    expect(completionEditor?.querySelector('input')).toBeNull();
+    expect(addButton).not.toBeNull();
+
+    act(() => {
+      addButton?.click();
+    });
+
+    const completionInput = completionEditor?.querySelector<HTMLInputElement>('input');
+    const submitButton = completionEditor?.querySelector<HTMLButtonElement>('button[aria-label="确认添加倒计时结束提示"]');
 
     expect(completionInput).not.toBeNull();
-    expect(addButton).not.toBeNull();
-    expect(removeButton).not.toBeNull();
+    expect(submitButton).not.toBeNull();
 
     act(() => {
       if (completionInput) setNativeValue(completionInput, "完成啦");
-      addButton?.click();
+      submitButton?.click();
     });
 
     expect(onPreviewSettings).toHaveBeenLastCalledWith(
@@ -86,21 +93,67 @@ describe("SettingsPanel", () => {
       }),
     );
 
-    act(() => {
-      removeButton?.click();
-    });
+    expect(completionEditor?.querySelector('input')).toBeNull();
+  });
+
+  it("shows three shared bubble groups and a minute-based eating duration", () => {
+    renderSettingsPanel();
+
+    expect(container?.textContent).toContain("吃饭状态停留时间（分钟）");
+    expect(container?.querySelector('input[type="number"][min="1"][max="60"]'))
+      .not.toBeNull();
+    expect(container?.textContent).toContain("嗯嗯");
+    expect(container?.textContent).toContain("工作");
+    expect(container?.textContent).toContain("吃饭");
+    expect(container?.textContent).not.toContain("待机点击");
+    expect(container?.textContent).not.toContain("待机自己冒泡");
+    expect(container?.textContent).not.toContain("工作时点击");
+    expect(container?.textContent).not.toContain("开始工作时");
+    expect(container?.textContent).not.toContain("午饭提醒");
+    expect(container?.textContent).not.toContain("晚饭提醒");
+    expect(container?.textContent).not.toContain("待机");
+  });
+
+  it("offers a default-off surprise switch with a clear work-session explanation", () => {
+    const onPreviewSettings = renderSettingsPanel();
+    const toggle = container?.querySelector<HTMLInputElement>(
+      'input[aria-label="开启彩蛋"]',
+    );
+
+    expect(toggle?.checked).toBe(false);
+    expect(container?.textContent).toContain("进入工作状态时，彩蛋会随机出现。");
+
+    act(() => toggle?.click());
 
     expect(onPreviewSettings).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        timer: { countdownCompleteLines: ["完成啦"] },
-      }),
+      expect.objectContaining({ surprise: { enabled: true } }),
     );
+  });
+
+  it("uses the section title for launch-at-login and removes the duplicate label", () => {
+    renderSettingsPanel();
+
+    expect(container?.querySelector('.settings-panel__section:nth-of-type(2) h2')?.textContent)
+      .toBe("开机时启动 Boocha");
+    expect(container?.querySelector('.settings-panel__toggle-row strong')).toBeNull();
   });
 
   it("keeps a macOS-style close dot at the upper left", () => {
     renderSettingsPanel();
 
     expect(container?.querySelector('button[aria-label="关闭设置"]')).not.toBeNull();
+  });
+
+  it("keeps close controls in a non-scrolling safe area", () => {
+    renderSettingsPanel();
+
+    const safeArea = container?.querySelector(".settings-panel__safe-area");
+    const scrollArea = container?.querySelector(".settings-panel__scroll");
+
+    expect(safeArea?.querySelector('button[aria-label="关闭设置"]')).not.toBeNull();
+    expect(safeArea?.textContent).toContain("设置");
+    expect(scrollArea?.textContent).toContain("桌宠大小");
+    expect(scrollArea?.querySelector('button[aria-label="关闭设置"]')).toBeNull();
   });
 
   it("offers a default-off launch-at-login switch", () => {

@@ -11,7 +11,7 @@ export interface PetBubbleSettings {
 export interface PetSettings {
   scale: number;
   durations: {
-    eatSeconds: number;
+    eatMinutes: number;
     idleInteractionMinutes: number;
   };
   meals: {
@@ -25,6 +25,9 @@ export interface PetSettings {
   startup: {
     launchAtLogin: boolean;
   };
+  surprise: {
+    enabled: boolean;
+  };
 }
 
 interface PetSettingsStorage {
@@ -34,11 +37,66 @@ interface PetSettingsStorage {
 
 export const petSettingsStorageKey = "boocha.pet.settings.v1";
 
+export type BubbleGroup = "idle" | "work" | "eat";
+
+function uniqueLines(...sources: string[][]): string[] {
+  return [...new Set(sources.flat().map((line) => line.trim()).filter(Boolean))];
+}
+
+export function getBubbleGroupLines(
+  bubbles: PetBubbleSettings,
+  group: BubbleGroup,
+): string[] {
+  if (group === "idle") {
+    return uniqueLines(bubbles.idleClick, bubbles.ambientIdle);
+  }
+
+  if (group === "work") {
+    return uniqueLines(bubbles.workClick, bubbles.workStart);
+  }
+
+  return uniqueLines(bubbles.eatClick, bubbles.lunch, bubbles.dinner);
+}
+
+export function setBubbleGroupLines(
+  bubbles: PetBubbleSettings,
+  group: BubbleGroup,
+  lines: string[],
+): PetBubbleSettings {
+  const nextLines = uniqueLines(lines);
+
+  if (group === "idle") {
+    return { ...bubbles, idleClick: nextLines, ambientIdle: nextLines };
+  }
+
+  if (group === "work") {
+    return { ...bubbles, workClick: nextLines, workStart: nextLines };
+  }
+
+  return {
+    ...bubbles,
+    eatClick: nextLines,
+    lunch: nextLines,
+    dinner: nextLines,
+  };
+}
+
 export function createDefaultPetSettings(): PetSettings {
+  const idleLines = [
+    "我在",
+    "摸鱼一下",
+    "今天也要好好吃饭",
+    "偷偷冒个泡",
+    "发呆中",
+    "陪你趴一会儿",
+  ];
+  const workLines = ["盯着你工作", "别忘了保存", "认真五分钟也算认真", "开始认真搬砖"];
+  const eatLines = ["饭饭时间", "香", "先吃两口", "饭点到", "晚饭时间"];
+
   return {
     scale: 1,
     durations: {
-      eatSeconds: 30,
+      eatMinutes: 1,
       idleInteractionMinutes: 3,
     },
     meals: {
@@ -46,19 +104,22 @@ export function createDefaultPetSettings(): PetSettings {
       dinner: "18:30",
     },
     bubbles: {
-      idleClick: ["我在", "摸鱼一下", "今天也要好好吃饭"],
-      workClick: ["盯着你工作", "别忘了保存", "认真五分钟也算认真"],
-      eatClick: ["饭饭时间", "香", "先吃两口"],
-      ambientIdle: ["偷偷冒个泡", "发呆中", "陪你趴一会儿"],
-      lunch: ["饭点到"],
-      dinner: ["晚饭时间"],
-      workStart: ["开始认真搬砖"],
+      idleClick: idleLines,
+      ambientIdle: idleLines,
+      workClick: workLines,
+      workStart: workLines,
+      eatClick: eatLines,
+      lunch: eatLines,
+      dinner: eatLines,
     },
     timer: {
       countdownCompleteLines: ["时间到，休息一下"],
     },
     startup: {
       launchAtLogin: false,
+    },
+    surprise: {
+      enabled: false,
     },
   };
 }
@@ -96,6 +157,30 @@ function normalizeLines(value: unknown, fallback: string[]): string[] {
   return value.length === 0 || lines.length > 0 ? lines : fallback;
 }
 
+function normalizeGroupLines(
+  source: Record<string, unknown>,
+  fields: (keyof PetBubbleSettings)[],
+  fallback: string[],
+): string[] {
+  const configuredFields = fields.filter((field) =>
+    Object.prototype.hasOwnProperty.call(source, field),
+  );
+
+  if (configuredFields.length === 0) {
+    return fallback;
+  }
+
+  const lines = uniqueLines(
+    ...configuredFields.map((field) => normalizeLines(source[field], [])),
+  );
+
+  const hasExplicitEmptyGroup = configuredFields.some(
+    (field) => Array.isArray(source[field]) && source[field].length === 0,
+  );
+
+  return lines.length > 0 || hasExplicitEmptyGroup ? lines : fallback;
+}
+
 export function normalizePetSettings(input: unknown): PetSettings {
   const defaults = createDefaultPetSettings();
   const source =
@@ -122,15 +207,48 @@ export function normalizePetSettings(input: unknown): PetSettings {
     source.startup !== null && typeof source.startup === "object"
       ? (source.startup as Record<string, unknown>)
       : {};
+  const surprise =
+    source.surprise !== null && typeof source.surprise === "object"
+      ? (source.surprise as Record<string, unknown>)
+      : {};
+
+  const idleLines = normalizeGroupLines(
+    bubbles,
+    ["idleClick", "ambientIdle"],
+    getBubbleGroupLines(defaults.bubbles, "idle"),
+  );
+  const workLines = normalizeGroupLines(
+    bubbles,
+    ["workClick", "workStart"],
+    getBubbleGroupLines(defaults.bubbles, "work"),
+  );
+  const eatLines = normalizeGroupLines(
+    bubbles,
+    ["eatClick", "lunch", "dinner"],
+    getBubbleGroupLines(defaults.bubbles, "eat"),
+  );
+  const sharedBubbles = setBubbleGroupLines(
+    setBubbleGroupLines(
+      setBubbleGroupLines(defaults.bubbles, "idle", idleLines),
+      "work",
+      workLines,
+    ),
+    "eat",
+    eatLines,
+  );
 
   return {
     scale: clamp(source.scale, 0.6, 1.4, defaults.scale),
     durations: {
-      eatSeconds: clamp(
-        durations.eatSeconds,
-        10,
-        180,
-        defaults.durations.eatSeconds,
+      eatMinutes: clamp(
+        typeof durations.eatMinutes === "number"
+          ? durations.eatMinutes
+          : typeof durations.eatSeconds === "number"
+            ? Math.ceil(durations.eatSeconds / 60)
+            : undefined,
+        1,
+        60,
+        defaults.durations.eatMinutes,
       ),
       idleInteractionMinutes: clamp(
         durations.idleInteractionMinutes,
@@ -143,18 +261,7 @@ export function normalizePetSettings(input: unknown): PetSettings {
       lunch: isTimeString(meals.lunch) ? meals.lunch : defaults.meals.lunch,
       dinner: isTimeString(meals.dinner) ? meals.dinner : defaults.meals.dinner,
     },
-    bubbles: {
-      idleClick: normalizeLines(bubbles.idleClick, defaults.bubbles.idleClick),
-      workClick: normalizeLines(bubbles.workClick, defaults.bubbles.workClick),
-      eatClick: normalizeLines(bubbles.eatClick, defaults.bubbles.eatClick),
-      ambientIdle: normalizeLines(
-        bubbles.ambientIdle,
-        defaults.bubbles.ambientIdle,
-      ),
-      lunch: normalizeLines(bubbles.lunch, defaults.bubbles.lunch),
-      dinner: normalizeLines(bubbles.dinner, defaults.bubbles.dinner),
-      workStart: normalizeLines(bubbles.workStart, defaults.bubbles.workStart),
-    },
+    bubbles: sharedBubbles,
     timer: {
       countdownCompleteLines: normalizeLines(
         timer.countdownCompleteLines,
@@ -166,6 +273,12 @@ export function normalizePetSettings(input: unknown): PetSettings {
         typeof startup.launchAtLogin === "boolean"
           ? startup.launchAtLogin
           : defaults.startup.launchAtLogin,
+    },
+    surprise: {
+      enabled:
+        typeof surprise.enabled === "boolean"
+          ? surprise.enabled
+          : defaults.surprise.enabled,
     },
   };
 }

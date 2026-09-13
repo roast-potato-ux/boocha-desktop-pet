@@ -1,4 +1,4 @@
-export type PetState = "idle" | "work" | "eat";
+export type PetState = "idle" | "work" | "eat" | "surprise";
 
 export type MealKind = "lunch" | "dinner";
 
@@ -10,6 +10,8 @@ export type PetEvent =
   | { type: "select-state"; state: PetState }
   | { type: "meal-reminder"; meal: MealKind }
   | { type: "cycle-state" }
+  | { type: "start-surprise" }
+  | { type: "finish-surprise" }
   | { type: "clear-bubble"; interactionAt: number }
   | { type: "return-previous" }
   | { type: "countdown-complete"; bubble: string | null };

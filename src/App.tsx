@@ -51,6 +51,7 @@ import {
 } from "./pet/focusTimer";
 import type { FocusTimerState } from "./pet/focusTimer";
 import { reducePetState } from "./pet/stateMachine";
+import { scheduleWorkSurprise } from "./pet/workSurprise";
 import type { PetEvent, PetViewModel } from "./pet/types";
 import { isNativePetWindowAvailable } from "./pet/windowControls";
 
@@ -101,6 +102,9 @@ export default function App() {
     startPointer: { x: number; y: number };
     startPosition: { left: number; top: number };
   } | null>(null);
+  const workSurpriseToken = useRef(0);
+  const workSurpriseTimer = useRef<number | null>(null);
+  const surpriseCompletionTimer = useRef<number | null>(null);
 
   const dispatchPet = useCallback(
     (event: PetEvent) => {
@@ -236,7 +240,59 @@ export default function App() {
     setQuickActionMode("main");
   };
 
+  const clearWorkSurprise = useCallback(() => {
+    workSurpriseToken.current += 1;
+
+    if (workSurpriseTimer.current !== null) {
+      window.clearTimeout(workSurpriseTimer.current);
+      workSurpriseTimer.current = null;
+    }
+
+    if (surpriseCompletionTimer.current !== null) {
+      window.clearTimeout(surpriseCompletionTimer.current);
+      surpriseCompletionTimer.current = null;
+    }
+  }, []);
+
+  const startManualWorkSession = useCallback(() => {
+    clearWorkSurprise();
+    dispatchPet({ type: "select-state", state: "work" });
+
+    if (focusTimer.mode !== null) {
+      return;
+    }
+
+    const schedule = scheduleWorkSurprise(
+      Date.now(),
+      Math.random,
+      settings.surprise.enabled,
+    );
+
+    if (!schedule) {
+      return;
+    }
+
+    const token = workSurpriseToken.current;
+    workSurpriseTimer.current = window.setTimeout(() => {
+      workSurpriseTimer.current = null;
+
+      if (token !== workSurpriseToken.current || !settingsRef.current.surprise.enabled) {
+        return;
+      }
+
+      dispatchPet({ type: "start-surprise" });
+      surpriseCompletionTimer.current = window.setTimeout(() => {
+        surpriseCompletionTimer.current = null;
+
+        if (token === workSurpriseToken.current) {
+          dispatchPet({ type: "finish-surprise" });
+        }
+      }, 60_000);
+    }, Math.max(0, schedule.dueAt - Date.now()));
+  }, [clearWorkSurprise, dispatchPet, focusTimer.mode, settings.surprise.enabled]);
+
   const startCountdownForMinutes = (minutes: number) => {
+    clearWorkSurprise();
     setFocusTimer(startCountdown(Date.now(), minutes));
     setCustomCountdownDraft(null);
     setTimerDisplay(null);
@@ -245,6 +301,7 @@ export default function App() {
   };
 
   const startCountdownForSeconds = (seconds: number) => {
+    clearWorkSurprise();
     setFocusTimer(startCountdownSeconds(Date.now(), seconds));
     setCustomCountdownDraft(null);
     setTimerDisplay(null);
@@ -252,6 +309,7 @@ export default function App() {
   };
 
   const openCustomCountdown = () => {
+    clearWorkSurprise();
     setFocusTimer(stopFocusTimer());
     setTimerDisplay(null);
     setCustomCountdownDraft(createCustomCountdownDraft());
@@ -260,6 +318,7 @@ export default function App() {
   };
 
   const toggleStopwatch = () => {
+    clearWorkSurprise();
     if (focusTimer.mode === "stopwatch") {
       setFocusTimer(stopFocusTimer());
       setTimerDisplay(null);
@@ -286,6 +345,7 @@ export default function App() {
   };
 
   const cancelFocusTimer = () => {
+    clearWorkSurprise();
     setFocusTimer(stopFocusTimer());
     setCustomCountdownDraft(null);
     setTimerDisplay(null);
@@ -385,12 +445,20 @@ export default function App() {
 
     const timer = window.setTimeout(() => {
       dispatchPet({ type: "return-previous" });
-    }, settings.durations.eatSeconds * 1000);
+    }, settings.durations.eatMinutes * 60 * 1000);
 
     return () => {
       window.clearTimeout(timer);
     };
-  }, [dispatchPet, pet.state, settings.durations.eatSeconds]);
+  }, [dispatchPet, pet.state, settings.durations.eatMinutes]);
+
+  useEffect(() => {
+    if (!settings.surprise.enabled || (pet.state !== "work" && pet.state !== "surprise")) {
+      clearWorkSurprise();
+    }
+  }, [clearWorkSurprise, pet.state, settings.surprise.enabled]);
+
+  useEffect(() => () => clearWorkSurprise(), [clearWorkSurprise]);
 
   // Only react to the panel opening/closing here. Re-applying the panel effects
   // on every live-preview tweak used to pile up native vibrancy views, which
@@ -415,6 +483,12 @@ export default function App() {
     let cancelled = false;
 
     void listenForPetStateRequests((state) => {
+      if (state === "work") {
+        startManualWorkSession();
+        return;
+      }
+
+      clearWorkSurprise();
       dispatchPet({ type: "select-state", state });
     }).then((nextUnlisten) => {
       if (cancelled) {
@@ -441,7 +515,7 @@ export default function App() {
       unlistenStateRequests?.();
       unlistenSettingsRequests?.();
     };
-  }, [dispatchPet, openSettings]);
+  }, [clearWorkSurprise, dispatchPet, openSettings, startManualWorkSession]);
 
   return (
     <main
@@ -576,6 +650,12 @@ export default function App() {
               }}
               onToggleWork={() => {
                 if (!focusTimerActive) {
+                  if (pet.state === "idle") {
+                    startManualWorkSession();
+                    return;
+                  }
+
+                  clearWorkSurprise();
                   dispatchPet({ type: "cycle-state" });
                 }
               }}

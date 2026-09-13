@@ -1,19 +1,18 @@
 import type { PetEvent, PetViewModel } from "./types";
 import type { PetBubbleSettings } from "./petSettings";
 
-const idleClickLines = ["我在", "摸鱼一下", "今天也要好好吃饭"];
-const workClickLines = ["盯着你工作", "别忘了保存", "认真五分钟也算认真"];
-const eatClickLines = ["饭饭时间", "香", "先吃两口"];
-const ambientIdleLines = ["偷偷冒个泡", "发呆中", "陪你趴一会儿"];
+const idleLines = ["我在", "摸鱼一下", "今天也要好好吃饭", "偷偷冒个泡", "发呆中", "陪你趴一会儿"];
+const workLines = ["盯着你工作", "别忘了保存", "认真五分钟也算认真", "开始认真搬砖"];
+const eatLines = ["饭饭时间", "香", "先吃两口", "饭点到", "晚饭时间"];
 
 const defaultBubbles: PetBubbleSettings = {
-  idleClick: idleClickLines,
-  workClick: workClickLines,
-  eatClick: eatClickLines,
-  ambientIdle: ambientIdleLines,
-  lunch: ["饭点到"],
-  dinner: ["晚饭时间"],
-  workStart: ["开始认真搬砖"],
+  idleClick: idleLines,
+  ambientIdle: idleLines,
+  workClick: workLines,
+  workStart: workLines,
+  eatClick: eatLines,
+  lunch: eatLines,
+  dinner: eatLines,
 };
 
 function pickLine(lines: string[], seed: number): string | null {
@@ -66,14 +65,37 @@ export function reducePetState(
     };
   }
 
+  if (event.type === "start-surprise") {
+    if (current.state !== "work") {
+      return current;
+    }
+
+    return {
+      state: "surprise",
+      previousState: "work",
+      bubble: "小彩蛋送你",
+      lastInteractionAt: now,
+    };
+  }
+
+  if (event.type === "finish-surprise") {
+    if (current.state !== "surprise") {
+      return current;
+    }
+
+    return {
+      state: "work",
+      previousState: null,
+      bubble: null,
+      lastInteractionAt: now,
+    };
+  }
+
   if (event.type === "meal-reminder") {
     return {
       state: "eat",
       previousState: current.state,
-      bubble: pickLine(
-        event.meal === "lunch" ? bubbles.lunch : bubbles.dinner,
-        now,
-      ),
+      bubble: pickLine(bubbles.eatClick, now),
       lastInteractionAt: now,
     };
   }
@@ -110,6 +132,7 @@ export function reducePetState(
       idle: bubbles.idleClick,
       work: bubbles.workClick,
       eat: bubbles.eatClick,
+      surprise: [],
     } satisfies Record<PetViewModel["state"], string[]>;
 
     return {
@@ -126,7 +149,7 @@ export function reducePetState(
 
     return {
       ...current,
-      bubble: pickLine(bubbles.ambientIdle, event.seed),
+      bubble: pickLine(bubbles.idleClick, event.seed),
       lastInteractionAt: now,
     };
   }
@@ -156,7 +179,7 @@ export function reducePetState(
       return {
         state: "eat",
         previousState: null,
-        bubble: pickLine(bubbles.lunch, now),
+        bubble: pickLine(bubbles.eatClick, now),
         lastInteractionAt: now,
       };
     }

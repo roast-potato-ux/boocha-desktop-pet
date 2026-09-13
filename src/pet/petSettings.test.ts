@@ -23,7 +23,7 @@ describe("petSettings", () => {
     expect(createDefaultPetSettings()).toMatchObject({
       scale: 1,
       durations: {
-        eatSeconds: 30,
+        eatMinutes: 1,
         idleInteractionMinutes: 3,
       },
       meals: {
@@ -49,6 +49,14 @@ describe("petSettings", () => {
     expect("workMinutes" in settings.durations).toBe(false);
   });
 
+  it("keeps the work surprise disabled unless the user explicitly enables it", () => {
+    expect(createDefaultPetSettings().surprise).toEqual({ enabled: false });
+    expect(normalizePetSettings({}).surprise).toEqual({ enabled: false });
+    expect(normalizePetSettings({ surprise: { enabled: true } }).surprise).toEqual({
+      enabled: true,
+    });
+  });
+
   it("loads saved settings while filling missing fields from defaults", () => {
     const storage = new MemoryStorage();
     storage.setItem(
@@ -70,6 +78,30 @@ describe("petSettings", () => {
     expect(settings.startup).toEqual({ launchAtLogin: true });
   });
 
+  it("migrates an old eating duration in seconds to whole minutes and shares each bubble group", () => {
+    const settings = normalizePetSettings({
+      durations: { eatSeconds: 30 },
+      bubbles: {
+        idleClick: ["点我"],
+        ambientIdle: ["自己说话"],
+        workClick: ["工作中"],
+        workStart: ["开始啦"],
+        eatClick: ["吃饭"],
+        lunch: ["午饭"],
+        dinner: ["晚饭"],
+      },
+    });
+
+    expect(settings.durations.eatMinutes).toBe(1);
+    expect(settings.bubbles.idleClick).toEqual(["点我", "自己说话"]);
+    expect(settings.bubbles.ambientIdle).toEqual(["点我", "自己说话"]);
+    expect(settings.bubbles.workClick).toEqual(["工作中", "开始啦"]);
+    expect(settings.bubbles.workStart).toEqual(["工作中", "开始啦"]);
+    expect(settings.bubbles.eatClick).toEqual(["吃饭", "午饭", "晚饭"]);
+    expect(settings.bubbles.lunch).toEqual(["吃饭", "午饭", "晚饭"]);
+    expect(settings.bubbles.dinner).toEqual(["吃饭", "午饭", "晚饭"]);
+  });
+
   it("falls back to defaults when saved settings are not readable", () => {
     const storage = new MemoryStorage();
     storage.setItem("boocha.pet.settings.v1", "{");
@@ -81,7 +113,7 @@ describe("petSettings", () => {
     const settings = normalizePetSettings({
       scale: 9,
       durations: {
-        eatSeconds: 3,
+        eatMinutes: 0,
         idleInteractionMinutes: 0,
       },
       meals: {
@@ -99,7 +131,7 @@ describe("petSettings", () => {
 
     expect(settings.scale).toBe(1.4);
     expect(settings.durations).toEqual({
-      eatSeconds: 10,
+      eatMinutes: 1,
       idleInteractionMinutes: 1,
     });
     expect(settings.meals).toEqual({ lunch: "12:00", dinner: "19:15" });

@@ -1,6 +1,7 @@
 import boochaEat from "../assets/boocha-eat.mov";
 import boochaIdle from "../assets/boocha-idle.mov";
 import boochaWork from "../assets/boocha-work.mov";
+import boochaSurprise from "../assets/boocha-surprise.mov";
 import { KeyedVideo } from "./KeyedVideo";
 import type { PetViewModel } from "./types";
 import { startPetDrag } from "./windowControls";
@@ -16,6 +17,7 @@ export function PetSprite({ pet, onClick, onToggleWork }: PetSpriteProps) {
     idle: boochaIdle,
     work: boochaWork,
     eat: boochaEat,
+    surprise: boochaSurprise,
   }[pet.state];
 
   return (
