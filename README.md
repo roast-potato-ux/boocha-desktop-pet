@@ -3,9 +3,9 @@
 <img src="src-tauri/icons/boocha-readme.jpg" alt="Boocha 图标" width="220">
 
 一只一直趴在 Mac 桌面上的 Boocha 桌宠。它能在待机、工作与吃饭之间切换，提醒饭点，陪你专注。
-©️版权声明： @ [Bearis（IP 作者）](https://xhslink.cn/o/8aYhoxW8bl6) 和 [AI(OH)3（代码作者）](https://xhslink.cn/o/6q0mMPXO7Up)。如需在网络上发布和本项目有关的内容，请@他们俩～
 
 > 当前仅支持 macOS，首个公开安装包面向 Apple Silicon（M 系列芯片）Mac。
+> ©️版权声明： @ [Bearis（IP 作者）](https://xhslink.cn/o/8aYhoxW8bl6) 和 [AI(OH)3（代码作者）](https://xhslink.cn/o/6q0mMPXO7Up)。如需在网络上发布和本项目有关的内容，请@他们俩～
 
 ## 功能
 
@@ -14,7 +14,7 @@
 - 计时器与倒计时：工作视觉、毛玻璃时间窗和可编辑的结束提示。
 - 🎁工作状态下，会随机出现小彩蛋。
 
-## 给所有爱 Boocha 的我们：下载后直接安装（最简单、最直白、最通用的方法）
+## 给所有爱 Boocha 的我们：下载后直接安装
 
 ### 点击下面按钮，前往下载最新的 macOS 安装包：
 
