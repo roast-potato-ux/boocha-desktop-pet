@@ -15,7 +15,13 @@
 
 ## 给所有爱 Boocha 的我们：下载后直接安装
 
-请到本项目 GitHub 页面右侧的 **Releases** 下载最新的 `Boocha Desktop Pet_*.dmg`。
+点击下面按钮，前往下载最新的 macOS 安装包：
+
+<p>
+  <a href="https://github.com/roast-potato-ux/boocha-desktop-pet/releases/tag/v0.1.0">
+    <img src="https://img.shields.io/badge/下载%20Boocha%20for%20Mac-v0.1.0-111827?style=for-the-badge&logo=apple&logoColor=white" alt="下载 Boocha for Mac">
+  </a>
+</p>
 
 1. 双击下载好的 `.dmg` 文件。
 2. 把 **Boocha Desktop Pet** 拖进「应用程序（Applications）」文件夹。
