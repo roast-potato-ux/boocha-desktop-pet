@@ -1,6 +1,6 @@
 # Boocha Desktop Pet
 
-<img src="src-tauri/icons/boocha-readme.png" alt="Boocha 图标" width="220">
+<img src="src-tauri/icons/boocha-readme.jpg" alt="Boocha 图标" width="220">
 
 一只一直趴在 Mac 桌面上的 Boocha 桌宠。它能在待机、工作与吃饭之间切换，提醒饭点，陪你计时，也能在登录 Mac 后自动出现。
 
