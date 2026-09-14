@@ -89,9 +89,15 @@ fn setup_tray_menu(app: &mut tauri::App) -> tauri::Result<()> {
             }
         });
 
-    if let Some(icon) = app.default_window_icon().cloned() {
-        tray_builder = tray_builder.icon(icon);
-    }
+    // The full application icon has a white character fill. The macOS status
+    // bar instead needs an alpha-only line drawing, otherwise AppKit displays
+    // the icon's square canvas as a visible background block.
+    let tray_icon = tauri::image::Image::new(
+        include_bytes!("../icons/tray-icon.rgba"),
+        144,
+        144,
+    );
+    tray_builder = tray_builder.icon(tray_icon).icon_as_template(false);
 
     let tray = tray_builder.build(app)?;
     app.manage(tray);
