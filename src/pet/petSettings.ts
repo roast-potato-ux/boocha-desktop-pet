@@ -94,7 +94,7 @@ export function createDefaultPetSettings(): PetSettings {
   const eatLines = ["饭饭时间", "香", "先吃两口", "饭点到", "晚饭时间"];
 
   return {
-    scale: 0.8,
+    scale: 0.7,
     durations: {
       eatMinutes: 1,
       idleInteractionMinutes: 3,

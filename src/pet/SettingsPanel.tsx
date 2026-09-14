@@ -186,9 +186,9 @@ export function SettingsPanel({
         <div className="settings-panel__section">
         <h2>桌宠大小</h2>
         <div className="settings-panel__segmented">
-          <button type="button" data-active={draft.scale === 0.8} onClick={() => updateDraft({ scale: 0.8 })}>小</button>
-          <button type="button" data-active={draft.scale === 1} onClick={() => updateDraft({ scale: 1 })}>中</button>
-          <button type="button" data-active={draft.scale === 1.25} onClick={() => updateDraft({ scale: 1.25 })}>大</button>
+          <button type="button" data-active={draft.scale === 0.7} onClick={() => updateDraft({ scale: 0.7 })}>小</button>
+          <button type="button" data-active={draft.scale === 0.8} onClick={() => updateDraft({ scale: 0.8 })}>中</button>
+          <button type="button" data-active={draft.scale === 0.9} onClick={() => updateDraft({ scale: 0.9 })}>大</button>
         </div>
         <label>
           缩放比例 {Math.round(draft.scale * 100)}%

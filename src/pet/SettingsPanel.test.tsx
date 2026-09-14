@@ -52,6 +52,31 @@ afterEach(() => {
 });
 
 describe("SettingsPanel", () => {
+  it("maps small, medium, and large to 70%, 80%, and 90%", () => {
+    const onPreviewSettings = renderSettingsPanel();
+    const sizeButtons = Array.from(
+      container?.querySelectorAll<HTMLButtonElement>(".settings-panel__segmented button") ?? [],
+    );
+
+    expect(sizeButtons.map((button) => button.textContent)).toEqual(["小", "中", "大"]);
+    expect(sizeButtons[0]?.dataset.active).toBe("true");
+
+    act(() => sizeButtons[0]?.click());
+    expect(onPreviewSettings).toHaveBeenLastCalledWith(
+      expect.objectContaining({ scale: 0.7 }),
+    );
+
+    act(() => sizeButtons[1]?.click());
+    expect(onPreviewSettings).toHaveBeenLastCalledWith(
+      expect.objectContaining({ scale: 0.8 }),
+    );
+
+    act(() => sizeButtons[2]?.click());
+    expect(onPreviewSettings).toHaveBeenLastCalledWith(
+      expect.objectContaining({ scale: 0.9 }),
+    );
+  });
+
   it("shows countdown completion tags instead of a custom-minute field", () => {
     renderSettingsPanel();
 

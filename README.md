@@ -1,8 +1,19 @@
 # Boocha Desktop Pet
 
-一只一直趴在 Mac 桌面上的 Boocha 桌宠。它能拖动、切换待机／工作／吃饭状态、提示饭点、设置开机登录后启动，并提供计时器和倒计时。
+![Boocha 图标](src-tauri/icons/icon.png)
 
-> 当前只支持 macOS。
+一只一直趴在 Mac 桌面上的 Boocha 桌宠。它能在待机、工作与吃饭之间切换，提醒饭点，陪你计时，也能在登录 Mac 后自动出现。
+
+> 当前仅支持 macOS，首个公开安装包面向 Apple Silicon（M 系列芯片）Mac。
+
+## 功能
+
+- 透明、置顶、可拖动，并记住桌宠位置。
+- 单击冒泡、双击切换「嗯嗯／工作／吃饭」、右键打开倒计时／计时器／设置。
+- 饭点自动进入吃饭状态；待机时随机冒泡。
+- 计时器与倒计时：工作视觉、毛玻璃时间窗和可编辑的结束提示。
+- 设置桌宠大小、饭点、气泡文案、吃饭状态停留时间和开机登录后启动。
+- 工作过程中可开启随机出现的「送你」彩蛋。
 
 ## 给普通用户：下载后直接安装
 
@@ -12,6 +23,8 @@
 2. 把 **Boocha Desktop Pet** 拖进「应用程序（Applications）」文件夹。
 3. 第一次启动：在「应用程序」里找到 Boocha，**按住 Control 点击它**，选择「打开」，然后在确认框中再次选择「打开」。
 4. 之后可像普通 App 一样双击启动。右键桌宠可打开快捷操作；在设置中可开启「登录 Mac 后自动出现」。
+
+> 安装包文件名包含 `aarch64` 时，表示它适用于 Apple Silicon（M 系列芯片）Mac。
 
 ### 为什么第一次会看到“无法验证开发者”？
 
@@ -31,8 +44,8 @@
 ### 本地开发
 
 ```bash
-git clone <本仓库地址>
-cd booch-desktop-pet
+git clone https://github.com/roast-potato-ux/boocha-desktop-pet.git
+cd boocha-desktop-pet
 npm install
 npm run tauri:dev
 ```
@@ -40,7 +53,7 @@ npm run tauri:dev
 ### 自己打包
 
 ```bash
-npm run tauri:build
+npm run tauri:build -- --bundles dmg
 ```
 
 打包完成后，macOS 安装包通常在：
@@ -54,7 +67,7 @@ src-tauri/target/release/bundle/dmg/
 欢迎基于代码做桌宠交互、状态、设置面板和本地功能的二次创作。
 
 - 代码采用 [MIT License](LICENSE)。
-- Boocha 的角色形象、视频和其他媒体素材不因代码的 MIT License 而自动获得再授权；请按你的素材授权范围使用，公开发布二创作品时尤其需要确认这一点。
+- 本项目使用的 Boocha 角色形象与视频素材已获项目授权；但代码的 MIT License 不会自动把这些媒体素材再授权给所有二创者。请在公开发布二创作品前确认你的素材授权范围。
 
 ## 发布者自检
 
