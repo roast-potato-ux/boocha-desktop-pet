@@ -5,6 +5,7 @@
 一只一直趴在 Mac 桌面上的 Boocha 桌宠。它能在待机、工作与吃饭之间切换，提醒饭点，陪你专注。
 
 > 当前仅支持 macOS，首个公开安装包面向 Apple Silicon（M 系列芯片）Mac。
+
 > ©️版权声明： @ [Bearis（IP 作者）](https://xhslink.cn/o/8aYhoxW8bl6) 和 [AI(OH)3（代码作者）](https://xhslink.cn/o/6q0mMPXO7Up)。如需在网络上发布和本项目有关的内容，请@他们俩～
 
 ## 功能
@@ -47,7 +48,7 @@
 
 > 不要在 DMG 内直接使用 App。请先拖入「应用程序」再打开，开机自动启动才会正常工作。
 
-## 给开发者 / Agent 用户：从源码运行（支持二创，适合有一定 coding 能力的 uu）
+## 给开发者 / Agent 用户：从源码运行（适合有一定 coding 能力的 uu）
 
 ### 环境
 
