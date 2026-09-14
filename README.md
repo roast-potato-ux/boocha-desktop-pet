@@ -3,6 +3,7 @@
 <img src="src-tauri/icons/boocha-readme.jpg" alt="Boocha 图标" width="220">
 
 一只一直趴在 Mac 桌面上的 Boocha 桌宠。它能在待机、工作与吃饭之间切换，提醒饭点，陪你专注。
+©️版权声明： @ [Bearis（IP 作者）](https://xhslink.cn/o/8aYhoxW8bl6) 和 [AI(OH)3（代码作者）](https://xhslink.cn/o/6q0mMPXO7Up)。如需在网络上发布和本项目有关的内容，请@他们俩～
 
 > 当前仅支持 macOS，首个公开安装包面向 Apple Silicon（M 系列芯片）Mac。
 
@@ -15,7 +16,7 @@
 
 ## 给所有爱 Boocha 的我们：下载后直接安装（最简单、最直白、最通用的方法）
 
-点击下面按钮，前往下载最新的 macOS 安装包：
+### 点击下面按钮，前往下载最新的 macOS 安装包：
 
 <p>
   <a href="https://github.com/roast-potato-ux/boocha-desktop-pet/releases/tag/v0.1.0">
@@ -23,7 +24,8 @@
   </a>
 </p>
 
-### 让 Agent 帮你安装
+### 🤖或者让 Agent 帮你安装（最简单、最直白、最通用的方法）
+如果你也使用 Codex、Claude、Workbuddy、豆包工作、Openclaw、Trae 等 Agent
 
 把下面这段话复制给你常用的 Agent 即可：
 
@@ -38,7 +40,7 @@
 
 > 安装包文件名包含 `aarch64` 时，表示它适用于 Apple Silicon（M 系列芯片）Mac。
 
-### ⚠️ 第一次安装会提示“无法验证开发者”
+#### ⚠️ 第一次安装会提示“无法验证开发者”
 
 **这是正常现象！！！** 
 目前发布包是**未签名测试版**，所以 macOS 会显示安全提示；这不代表它不能运行。请仅从本项目 GitHub Releases 下载，并按上面的首次启动步骤操作。
@@ -81,14 +83,12 @@ src-tauri/target/release/bundle/dmg/
 
 ## 二次创作
 
-欢迎基于代码做桌宠交互、状态、设置面板和本地功能的二次创作。
+欢迎基于代码做桌宠交互、状态、设置面板和本地功能的二次创作，二创后的代码同样欢迎提交 PR。
 
 - 代码采用 [MIT License](LICENSE)。
 - 本项目使用的 Boocha 角色形象与视频素材已获项目授权；但代码的 MIT License 不会自动把这些媒体素材再授权给所有二创者。请在公开发布二创作品前确认你的素材授权范围。
 
-## 共创与发布说明
-
-欢迎提交 Bug、新想法，也欢迎直接上手二创；二创后的代码同样欢迎提交 PR。
+#### 📢共创与发布说明
 
 如需在网络上发布与本项目相关的内容，请同时注明并 @ [Bearis（IP 作者）](https://xhslink.cn/o/8aYhoxW8bl6) 和 [AI(OH)3（代码作者）](https://xhslink.cn/o/6q0mMPXO7Up)。
 
