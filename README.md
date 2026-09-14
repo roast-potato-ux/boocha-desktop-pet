@@ -23,6 +23,14 @@
   </a>
 </p>
 
+### 让 Agent 帮你安装
+
+把下面这段话复制给你常用的 Agent 即可：
+
+```text
+请帮我在这台 Mac 安装 Boocha Desktop Pet。请从 https://github.com/roast-potato-ux/boocha-desktop-pet/releases/tag/v0.1.0 下载最新版 Apple Silicon（M 系列）`.dmg`，把 Boocha Desktop Pet.app 安装到“应用程序（Applications）”。如果发现已有同名 App，请先告诉我并询问是否覆盖。安装完成后，使用 Control 点击应用并选择“打开”完成首次启动；这是未签名测试版，macOS 的安全提示属于正常现象。最后启动 Boocha 并告诉我结果。不要请求或使用我的 GitHub 凭据。
+```
+
 1. 双击下载好的 `.dmg` 文件。
 2. 把 **Boocha Desktop Pet** 拖进「应用程序（Applications）」文件夹。
 3. 第一次启动：在「应用程序」里找到 Boocha，**按住 Control 点击它**，选择「打开」，然后在确认框中再次选择「打开」。
