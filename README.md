@@ -45,12 +45,6 @@
 
 > 不要在 DMG 内直接使用 App。请先拖入「应用程序」再打开，开机自动启动才会正常工作。
 
-## 共创与发布说明
-
-欢迎提交 Bug、新想法，也欢迎直接上手二创；二创后的代码同样欢迎提交 PR。
-
-如需在网络上发布与本项目相关的内容，请同时注明并 @ [Bearis（IP 作者）](https://xhslink.cn/o/8aYhoxW8bl6) 和 [AI(OH)3（代码作者）](https://xhslink.cn/o/6q0mMPXO7Up)。
-
 ## 给开发者 / Agent 用户：从源码运行（支持二创，适合有一定 coding 能力的 uu）
 
 ### 环境
@@ -91,6 +85,12 @@ src-tauri/target/release/bundle/dmg/
 
 - 代码采用 [MIT License](LICENSE)。
 - 本项目使用的 Boocha 角色形象与视频素材已获项目授权；但代码的 MIT License 不会自动把这些媒体素材再授权给所有二创者。请在公开发布二创作品前确认你的素材授权范围。
+
+## 共创与发布说明
+
+欢迎提交 Bug、新想法，也欢迎直接上手二创；二创后的代码同样欢迎提交 PR。
+
+如需在网络上发布与本项目相关的内容，请同时注明并 @ [Bearis（IP 作者）](https://xhslink.cn/o/8aYhoxW8bl6) 和 [AI(OH)3（代码作者）](https://xhslink.cn/o/6q0mMPXO7Up)。
 
 ## 发布者自检
 
