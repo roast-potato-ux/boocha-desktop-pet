@@ -1,6 +1,6 @@
 [package]
 name = "boocha-desktop-pet"
-version = "0.1.0"
+version = "0.1.1"
 description = "A playful desktop pet for macOS"
 authors = ["bytedance"]
 edition = "2021"
